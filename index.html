@@ -256,10 +256,15 @@ function caminhos(m) {
 }
 const rampa = (k, a, b) => Math.max(0, Math.min(1, (k / k0 - a) / (b - a)));
 const SERIF = '"Source Serif 4", Georgia, serif', DISP = '"Bricolage Grotesque", sans-serif';
-function desenhar() {
-  agendado = false;
+/* Desenho em duas camadas: o mapa completo é pintado numa "foto" (com margem em volta) só quando
+   o gesto para; durante o arrasto/zoom, só essa foto é reposicionada e escalada — custa ~1 ms por quadro. */
+const snap = document.createElement('canvas'), sctx = snap.getContext('2d');
+let tSnap = null, sujo = true, ocioso = 0;
+const MARG = 0.35;
+const larguraTexto = new Map();
+function pintar(ctx, t, cw, ch) {
   ctx.setTransform(1, 0, 0, 1, 0, 0);
-  ctx.fillStyle = cor['--map-outside']; ctx.fillRect(0, 0, cv.width, cv.height);
+  ctx.fillStyle = cor['--map-outside']; ctx.fillRect(0, 0, cw * dpr, ch * dpr);
   if (!P) return;
   const k = t.k, s = dpr * k;
   ctx.setTransform(s, 0, 0, s, dpr * t.x, dpr * t.y);
@@ -282,9 +287,11 @@ function desenhar() {
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   const ocupado = [], livre = r => !ocupado.some(o => r.x < o.x + o.w && r.x + r.w > o.x && r.y < o.y + o.h && r.y + r.h > o.y);
   const rotulo = (txt, x, y, ang, fonte, c) => {
-    ctx.font = fonte; const wd = ctx.measureText(txt).width, sn = Math.abs(Math.sin(ang)), cs = Math.abs(Math.cos(ang));
+    ctx.font = fonte; const ch_ = fonte + '|' + txt; let wd = larguraTexto.get(ch_);
+    if (wd === undefined) { wd = ctx.measureText(txt).width; larguraTexto.set(ch_, wd); }
+    const sn = Math.abs(Math.sin(ang)), cs = Math.abs(Math.cos(ang));
     const r = { x: x - (wd * cs) / 2 - 6, y: y - (wd * sn) / 2 - 9, w: wd * cs + 12 + 14 * sn, h: wd * sn + 18 };
-    if (x < -60 || y < -20 || x > cv.clientWidth + 60 || y > cv.clientHeight + 20 || !livre(r)) return;
+    if (x < -60 || y < -20 || x > cw + 60 || y > ch + 20 || !livre(r)) return;
     ocupado.push(r);
     ctx.save(); ctx.translate(x, y); if (ang) ctx.rotate(ang);
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
@@ -303,12 +310,32 @@ function desenhar() {
   if (k / k0 < 6) for (const b of M.barrios) rotulo(b.n, t.applyX(b.lx), t.applyY(b.ly), 0, `800 15px ${DISP}`, cor['--map-label']);
   if (k / k0 < 7) for (const [n, x, y, peso] of (M.locais || [])) if (peso >= 2 || k / k0 >= 2.2) rotulo(n, t.applyX(x), t.applyY(y), 0, `${peso >= 2 ? 700 : 500} ${peso >= 2 ? 14 : 12}px ${DISP}`, cor['--map-label-2']);
 }
+function desenhar() {
+  agendado = false;
+  posicionarPins();
+  const w = cv.clientWidth, h = cv.clientHeight, mx = Math.round(w * MARG), my = Math.round(h * MARG);
+  let r = tSnap ? t.k / tSnap.k : 1;
+  if (sujo || !tSnap || r > 2.5 || r < 0.45) {
+    const sw = Math.round((w + 2 * mx) * dpr), sh = Math.round((h + 2 * my) * dpr);
+    if (snap.width !== sw || snap.height !== sh) { snap.width = sw; snap.height = sh; }
+    pintar(sctx, d3.zoomIdentity.translate(t.x + mx, t.y + my).scale(t.k), w + 2 * mx, h + 2 * my);
+    tSnap = t; sujo = false; r = 1;
+  }
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.fillStyle = cor['--map-outside']; ctx.fillRect(0, 0, cv.width, cv.height);
+  ctx.imageSmoothingEnabled = true;
+  ctx.drawImage(snap, dpr * (t.x - r * (mx + tSnap.x)), dpr * (t.y - r * (my + tSnap.y)), snap.width * r, snap.height * r);
+}
 const pedir = () => { if (!agendado) { agendado = true; requestAnimationFrame(desenhar); } };
+const redesenhar = () => { sujo = true; pedir(); };
 function posicionarPins() {
   pinsEl.classList.toggle('far', t.k < k0 * 2.4);
   for (const l of L) pinEls.get(l.id).style.transform = `translate(${t.applyX(l.x)}px, ${t.applyY(l.y)}px) translate(-50%, -50%)`;
 }
-const zoom = d3.zoom().on('zoom', ev => { t = ev.transform; posicionarPins(); pedir(); });
+const zoom = d3.zoom().on('zoom', ev => {
+  t = ev.transform; pedir();
+  clearTimeout(ocioso); ocioso = setTimeout(redesenhar, 140);   // gesto parou: repinta nítido
+});
 d3.select(cv).call(zoom).on('dblclick.zoom', null);
 cv.addEventListener('click', () => fechar());
 function tamanho() {
@@ -343,7 +370,7 @@ async function carregarMapa() {
   try {
     const r = await fetch('mapa.json'); if (!r.ok) throw new Error(r.status);
     M = await r.json(); W = M.W; H = M.H; P = caminhos(M);
-    statusEl.hidden = true; tamanho(); pedir();
+    statusEl.hidden = true; tamanho(); redesenhar();
   } catch (e) {
     statusEl.innerHTML = '<p>O mapa não carregou. A lista continua funcionando.</p><button type="button" class="btn" id="denovo">Tentar de novo</button>';
     statusEl.querySelector('#denovo').onclick = carregarMapa;
@@ -390,8 +417,8 @@ function atualizar(reenquadrar) {
 }
 
 lerCores();
-new ResizeObserver(() => { tamanho(); posicionarPins(); pedir(); }).observe(box);
-if (document.fonts && document.fonts.ready) document.fonts.ready.then(pedir);
+new ResizeObserver(() => { tamanho(); redesenhar(); }).observe(box);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { larguraTexto.clear(); redesenhar(); });
 renderCats(); renderList();
 for (const l of L) pinEls.get(l.id).hidden = !ok(l);
 const v0 = visiveis(); enquadrar(naCidade(v0).length ? naCidade(v0) : v0, false);
