@@ -149,7 +149,7 @@ button, input { font: inherit; color: inherit; }
     <h2 class="visually-hidden">Categorias</h2>
     <div class="cats" id="cats"></div>
     <div class="list" id="list" aria-live="polite"></div>
-    <p class="credits">Lista salva no Google Maps em 20/11/2026. Fotos do Google Maps. Ruas, parques e subte: <a href="https://data.buenosaires.gob.ar/" target="_blank" rel="noopener">BA Data</a>, Governo da Cidade de Buenos Aires. Arredores e trens: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© colaboradores do OpenStreetMap</a>.</p>
+    <p class="credits">Lista do Google Maps; categorias e dicas da planilha do Gui. Fotos do Google Maps. Ruas, parques e subte: <a href="https://data.buenosaires.gob.ar/" target="_blank" rel="noopener">BA Data</a>, Governo da Cidade de Buenos Aires. Arredores e trens: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© colaboradores do OpenStreetMap</a>.</p>
   </aside>
   <main class="map" id="map">
     <canvas id="cv" aria-label="Mapa de Buenos Aires com ruas, parques, subte e os lugares salvos"></canvas>
@@ -169,19 +169,20 @@ button, input { font: inherit; color: inherit; }
 <script>
 {
 const DATA = JSON.parse(document.getElementById('data').textContent);
-const CATS = DATA.categorias, NOME = Object.fromEntries(CATS);
-const L = DATA.lugares;
+let CATS = DATA.categorias, NOME = Object.fromEntries(CATS);
+let L = DATA.lugares;
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const norm = s => String(s ?? '').normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
 const URLRE = /https?:\/\/\S+/g;
 const lento = matchMedia('(prefers-reduced-motion: reduce)').matches;
-L.forEach(l => {
+const preparar = () => L.forEach(l => {
   const urls = (l.no || '').match(URLRE) || [];
   l.ig = urls.find(u => u.includes('instagram.com')) || urls[0] || '';
   l.txt = (l.no || '').replace(URLRE, '').replace(/\s+/g, ' ').replace(/[:\s]+$/, '').trim();
   l.cat = NOME[l.e] || 'Outros';
   l.busca = norm([l.n, l.txt, l.d, l.b, l.t, l.cat].join(' '));
 });
+preparar();
 const inicial = l => esc(l.n.replace(/^[^\p{L}\p{N}]+/u, '').charAt(0).toUpperCase());
 
 /* ---------- estado ---------- */
@@ -193,8 +194,9 @@ const visiveis = () => L.filter(ok);
 
 /* ---------- categorias e lista ---------- */
 const catsEl = document.getElementById('cats'), listEl = document.getElementById('list'), countEl = document.getElementById('count');
-const total = {}; L.forEach(l => total[l.e] = (total[l.e] || 0) + 1);
+let total = {};
 function renderCats() {
+  total = {}; L.forEach(l => total[l.e] = (total[l.e] || 0) + 1);
   catsEl.innerHTML = `<button type="button" class="cell" data-e="" aria-pressed="${sel.size === 0}">Todos <span class="n">${L.length}</span></button>` +
     CATS.filter(([e]) => total[e]).map(([e, n]) => `<button type="button" class="cell" data-e="${e}" aria-pressed="${sel.has(e)}">${esc(n)} <span class="n">${total[e]}</span></button>`).join('');
 }
@@ -229,10 +231,13 @@ const box = document.getElementById('map'), cv = document.getElementById('cv'), 
 const pinsEl = document.getElementById('pins'), statusEl = document.getElementById('status');
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 let M = null, P = null, cor = {}, t = d3.zoomIdentity, k0 = 1, W = 2387, H = 2200, dpr = 1, agendado = false;
-const ordem = [...L].sort((a, b) => a.y - b.y);
-pinsEl.innerHTML = ordem.map(l => `<button type="button" class="pin" data-id="${l.id}" aria-label="${esc(l.n)}, ${esc(l.cat)}" title="${esc(l.n)}">` +
+let pinEls = new Map();
+function construirPins() {
+  pinsEl.innerHTML = [...L].sort((a, b) => a.y - b.y).map(l => `<button type="button" class="pin" data-id="${l.id}" aria-label="${esc(l.n)}, ${esc(l.cat)}" title="${esc(l.n)}">` +
   (l.f ? `<img src="mini/${l.id}.webp" width="64" height="64" loading="lazy" alt="">` : `<span class="ini">${inicial(l)}</span>`) + `</button>`).join('');
-const pinEls = new Map([...pinsEl.children].map(b => [b.dataset.id, b]));
+  pinEls = new Map([...pinsEl.children].map(b => [b.dataset.id, b]));
+}
+construirPins();
 pinsEl.addEventListener('click', ev => { const b = ev.target.closest('.pin'); if (b) { ev.stopPropagation(); abrir(L.find(l => l.id === b.dataset.id), false); } });
 
 function lerCores() {
@@ -392,6 +397,63 @@ const v0 = visiveis(); enquadrar(naCidade(v0).length ? naCidade(v0) : v0, false)
 carregarMapa();
 const h0 = (location.hash.match(/^#l-(\d+)$/) || [])[1];
 if (h0) abrir(L.find(l => l.id === h0), true);
+
+/* ---------- planilha ao vivo: emoji, nome, dica e categorias vêm do Google Sheets ---------- */
+const PLANILHA = '1wOzujfGehTXn87mZXhWx9PBYtrtGOrji8PhmfZhxP7k';
+function lerCsv(txt) {
+  const linhas = []; let linha = [], campo = '', aspas = false;
+  for (let i = 0; i < txt.length; i++) {
+    const c = txt[i];
+    if (aspas) { if (c === '"') { if (txt[i + 1] === '"') { campo += '"'; i++; } else aspas = false; } else campo += c; }
+    else if (c === '"') aspas = true;
+    else if (c === ',') { linha.push(campo); campo = ''; }
+    else if (c === '\n') { linha.push(campo); linhas.push(linha); linha = []; campo = ''; }
+    else if (c !== '\r') campo += c;
+  }
+  if (campo || linha.length) { linha.push(campo); linhas.push(linha); }
+  return linhas;
+}
+async function aba(nome) {
+  const r = await fetch(`https://docs.google.com/spreadsheets/d/${PLANILHA}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(nome)}`);
+  if (!r.ok) throw new Error(r.status);
+  const [cab, ...linhas] = lerCsv(await r.text());
+  return linhas.map(v => Object.fromEntries(cab.map((c, i) => [c.trim(), (v[i] || '').trim()])));
+}
+const KX = Math.cos(-34.60 * Math.PI / 180);
+const projetar = (lat, lng) => ({ x: (lng + 58.60) * KX * 10000, y: (-34.49 - lat) * 10000 });
+const num = v => parseFloat(String(v).replace(',', '.'));
+async function sincronizar() {
+  try {
+    const [cats, lugares] = await Promise.all([aba('Categorias'), aba('Lugares')]);
+    const novasCats = cats.filter(c => c.Emoji && c.Categoria).map(c => [c.Emoji, c.Categoria]);
+    const porId = new Map(L.map(l => [l.id, l]));
+    const novos = [];
+    for (const r of lugares) {
+      if (!r.ID) continue;
+      const lat = num(r.Latitude), lng = num(r.Longitude), base = porId.get(r.ID);
+      if (!base && !(lat && lng)) continue;
+      const l = base ? { ...base } : { id: r.ID, f: 0, b: '', ...projetar(lat, lng) };
+      if (r.Emoji) l.e = r.Emoji;
+      if (r.Lugar) l.n = r.Lugar;
+      l.d = r.Dica || '';
+      if ('Nota no Maps' in r) l.no = r['Nota no Maps'];
+      if (r['Faixa de preço']) l.p = r['Faixa de preço'];
+      if (r['Tipo (Google)']) l.t = r['Tipo (Google)'];
+      if (r['Endereço']) l.a = r['Endereço'];
+      novos.push(l);
+    }
+    if (!novos.length) return;
+    if (novasCats.length) { CATS = novasCats; NOME = Object.fromEntries(CATS); }
+    const aberto = cur && cur.id;
+    L = novos; preparar();
+    [...sel].forEach(e => NOME[e] || sel.delete(e));
+    construirPins(); posicionarPins();
+    cur = null; card.hidden = true;
+    atualizar(false);
+    if (aberto) abrir(L.find(l => l.id === aberto), false);
+  } catch (e) { /* sem planilha, o site segue com os dados embutidos */ }
+}
+sincronizar();
 }
 </script>
 </body>
