@@ -100,6 +100,14 @@ button, input { font: inherit; color: inherit; }
 .ctl button:last-child { border-bottom: 0; padding: 0 var(--space-xs); font-size: var(--text-xs); }
 .ctl button:hover { background: var(--color-paper-2); }
 .ctl button:focus-visible { outline-offset: -3px; }
+.ctl #eu { display: grid; place-items: center; }
+.ctl #eu svg { width: 20px; height: 20px; }
+.ctl #eu[aria-pressed="true"] { background: var(--color-ink); color: var(--color-paper); }
+.eu { position: absolute; left: 0; top: 0; pointer-events: none; z-index: 2; }
+.eu .acc { position: absolute; left: 0; top: 0; translate: -50% -50%; border-radius: 50%; background: color-mix(in oklab, var(--color-accent) 12%, transparent); border: 1px solid color-mix(in oklab, var(--color-accent) 50%, transparent); }
+.eu .ponto { position: absolute; left: 0; top: 0; translate: -50% -50%; width: 18px; height: 18px; border-radius: 50%; background: var(--color-ink); border: 3px solid var(--color-paper); box-shadow: 0 0 0 2px var(--color-accent); }
+.aviso { position: absolute; left: 50%; top: var(--space-md); translate: -50% 0; max-width: min(380px, calc(100% - 8rem)); margin: 0; padding: var(--space-sm) var(--space-md); background: var(--color-ink); color: var(--color-paper); font-family: var(--font-display); font-variation-settings: "opsz" 12; font-size: var(--text-sm); z-index: 6; }
+.row .m .dist { color: var(--color-ink); font-weight: 700; }
 .status { position: absolute; left: 50%; top: 50%; translate: -50% -50%; display: grid; gap: var(--space-sm); justify-items: start; max-width: min(340px, 80%); padding: var(--space-md) var(--space-lg); background: var(--color-ink); color: var(--color-paper); font-family: var(--font-display); font-variation-settings: "opsz" 12; }
 .status .btn { border-color: var(--color-paper); color: var(--color-paper); }
 .status .btn:hover { background: var(--color-ink-2); }
@@ -154,9 +162,12 @@ button, input { font: inherit; color: inherit; }
   <main class="map" id="map">
     <canvas id="cv" aria-label="Mapa de Buenos Aires com ruas, parques, subte e os lugares salvos"></canvas>
     <div class="pins" id="pins"></div>
+    <div class="eu" id="euEl" hidden><span class="acc"></span><span class="ponto"></span></div>
+    <p class="aviso" id="aviso" role="status" hidden></p>
     <div class="ctl">
       <button type="button" id="zin" aria-label="Aproximar">+</button>
       <button type="button" id="zout" aria-label="Afastar">−</button>
+      <button type="button" id="eu" aria-label="Mostrar onde estou" aria-pressed="false" title="Onde estou"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v4M12 18.5v4M1.5 12h4M18.5 12h4"/></svg></button>
       <button type="button" id="fit">Ver todos</button>
     </div>
     <div class="status" id="status" role="status"><p>Carregando o mapa</p></div>
@@ -207,11 +218,12 @@ function renderList() {
     listEl.innerHTML = `<div class="empty"><p>Nenhum lugar com essa busca ou filtro.</p><button type="button" class="btn" id="limpar">Limpar filtros</button></div>`;
     return;
   }
-  const grupos = CATS.map(([e, n]) => [e, n, vis.filter(l => l.e === e).sort((a, b) => a.n.localeCompare(b.n, 'es'))]).filter(g => g[2].length);
+  const ordem = perto() ? (a, b) => distM(a) - distM(b) : (a, b) => a.n.localeCompare(b.n, 'es');
+  const grupos = CATS.map(([e, n]) => [e, n, vis.filter(l => l.e === e).sort(ordem)]).filter(g => g[2].length);
   listEl.innerHTML = grupos.map(([e, n, ls]) => `<section class="grp"><div class="gh"><h2>${esc(n)}</h2><span class="n">${ls.length}</span></div>` +
     ls.map(l => `<button type="button" class="row${cur === l ? ' on' : ''}" data-id="${l.id}">` +
       (l.f ? `<img class="thumb" src="mini/${l.id}.webp" width="64" height="64" loading="lazy" alt="">` : `<span class="thumb thumb--vazio" aria-hidden="true">${inicial(l)}</span>`) +
-      `<span><b>${esc(l.n)}</b><span class="m"><span>${esc(l.b)}</span>${l.p ? `<span>${esc(l.p)}</span>` : ''}</span>${(l.d || l.txt) ? `<span class="nt">${esc(l.d || l.txt)}</span>` : ''}</span></button>`).join('') + `</section>`).join('');
+      `<span><b>${esc(l.n)}</b><span class="m">${perto() ? `<span class="dist">${distTxt(l)}</span>` : ''}<span>${esc(l.b)}</span>${l.p ? `<span>${esc(l.p)}</span>` : ''}</span>${(l.d || l.txt) ? `<span class="nt">${esc(l.d || l.txt)}</span>` : ''}</span></button>`).join('') + `</section>`).join('');
 }
 catsEl.addEventListener('click', ev => {
   const b = ev.target.closest('.cell'); if (!b) return;
@@ -229,9 +241,15 @@ qEl.addEventListener('input', () => { q = norm(qEl.value.trim()); atualizar(fals
 /* ---------- mapa ---------- */
 const box = document.getElementById('map'), cv = document.getElementById('cv'), ctx = cv.getContext('2d');
 const pinsEl = document.getElementById('pins'), statusEl = document.getElementById('status');
+const euEl = document.getElementById('euEl'), euAcc = euEl.querySelector('.acc');
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 let M = null, P = null, cor = {}, t = d3.zoomIdentity, k0 = 1, W = 2387, H = 2200, dpr = 1, agendado = false;
 let pinEls = new Map();
+/* ---------- onde estou ---------- */
+let eu = null;                                           // { x, y, acc (m), longe }
+const perto = () => !!(eu && !eu.longe);
+const distM = l => Math.hypot(l.x - eu.x, l.y - eu.y) * 11.12;   // 1 unidade do mapa ≈ 11,12 m
+const distTxt = l => { const m = distM(l); return m < 950 ? `${Math.max(50, Math.round(m / 50) * 50)} m` : `${(m / 1000).toLocaleString('pt-BR', { maximumFractionDigits: m < 20000 ? 1 : 0 })} km`; };
 function construirPins() {
   pinsEl.innerHTML = [...L].sort((a, b) => a.y - b.y).map(l => `<button type="button" class="pin" data-id="${l.id}" aria-label="${esc(l.n)}, ${esc(l.cat)}" title="${esc(l.n)}">` +
   (l.f ? `<img src="mini/${l.id}.webp" width="64" height="64" loading="lazy" alt="">` : `<span class="ini">${inicial(l)}</span>`) + `</button>`).join('');
@@ -349,6 +367,10 @@ const pedir = () => { if (!agendado) { agendado = true; requestAnimationFrame(de
 const redesenhar = () => { sujo = true; pedir(); };
 function posicionarPins() {
   pinsEl.classList.toggle('far', t.k < k0 * 2.4);
+  if (eu && !euEl.hidden) {
+    euEl.style.transform = `translate(${t.applyX(eu.x)}px, ${t.applyY(eu.y)}px)`;
+    const d = Math.max(0, 2 * eu.acc / 11.12 * t.k); euAcc.style.width = euAcc.style.height = `${d}px`;
+  }
   for (const l of L) pinEls.get(l.id).style.transform = `translate(${t.applyX(l.x)}px, ${t.applyY(l.y)}px) translate(-50%, -50%)`;
 }
 const zoom = d3.zoom().on('zoom', ev => {
@@ -401,7 +423,7 @@ const card = document.getElementById('card');
 function abrir(l, voar) {
   if (!l) return;
   cur = l;
-  const dl = [['Preço', l.p], ['No Google', l.t], ['Endereço', l.a]].filter(x => x[1]);
+  const dl = [['Daqui', perto() ? distTxt(l) + ', em linha reta' : ''], ['Preço', l.p], ['No Google', l.t], ['Endereço', l.a]].filter(x => x[1]);
   card.innerHTML = (l.f ? `<img class="photo" src="fotos/${l.id}.webp" width="720" height="480" alt="Foto de ${esc(l.n)}">` : '') +
     `<div class="body"><div class="head"><span class="tag">${esc(l.cat)}</span><span class="bairro">${esc(l.b)}</span><button type="button" class="x" aria-label="Fechar">×</button></div>
     <h2>${esc(l.n)}</h2>
@@ -468,6 +490,41 @@ async function aba(nome) {
 }
 const KX = Math.cos(-34.60 * Math.PI / 180);
 const projetar = (lat, lng) => ({ x: (lng + 58.60) * KX * 10000, y: (-34.49 - lat) * 10000 });
+
+const euBtn = document.getElementById('eu'), avisoEl = document.getElementById('aviso');
+let vigia = null, primeira = true, avisoT = 0, ultimo = null;
+const avisar = (txt, ms = 6000) => { avisoEl.textContent = txt; avisoEl.hidden = false; clearTimeout(avisoT); if (ms) avisoT = setTimeout(() => { avisoEl.hidden = true; }, ms); };
+const desligarEu = () => {
+  if (vigia !== null) navigator.geolocation.clearWatch(vigia);
+  vigia = null; eu = null; ultimo = null; euEl.hidden = true; euBtn.setAttribute('aria-pressed', 'false');
+  renderList(); if (cur) abrir(cur, false);
+};
+euBtn.onclick = () => {
+  if (vigia !== null) {
+    // 1º clique depois de ativo: se você saiu da tela, volta pra você; se já está à vista, desliga
+    const sx = t.applyX(eu ? eu.x : 0), sy = t.applyY(eu ? eu.y : 0), w = cv.clientWidth, h = cv.clientHeight;
+    if (perto() && (sx < w * 0.15 || sx > w * 0.85 || sy < h * 0.15 || sy > h * 0.85)) { focar(eu); return; }
+    desligarEu(); return;
+  }
+  if (!('geolocation' in navigator)) { avisar('Este navegador não informa a localização.'); return; }
+  euBtn.setAttribute('aria-pressed', 'true'); primeira = true; avisar('Procurando você…', 0);
+  vigia = navigator.geolocation.watchPosition(pos => {
+    const { latitude, longitude, accuracy } = pos.coords;
+    const p = projetar(latitude, longitude);
+    eu = { ...p, acc: Math.min(accuracy || 0, 2000), longe: p.x < -W * 0.6 || p.y < -H * 0.6 || p.x > W * 1.6 || p.y > H * 1.6 };
+    euEl.hidden = eu.longe; posicionarPins();
+    if (primeira) {
+      primeira = false;
+      if (eu.longe) { const km = Math.round(Math.hypot(p.x - W / 2, p.y - H / 2) * 11.12 / 1000); avisar(`Você está a uns ${km.toLocaleString('pt-BR')} km de Buenos Aires. As distâncias aparecem quando você estiver por lá.`, 8000); }
+      else { avisoEl.hidden = true; focar(eu); }
+    }
+    // só refaz a lista quando você andou um pouco (evita piscar a cada leitura do GPS)
+    if (!ultimo || Math.hypot(p.x - ultimo.x, p.y - ultimo.y) * 11.12 > 30) { ultimo = p; renderList(); if (cur) abrir(cur, false); }
+  }, err => {
+    avisar(err.code === 1 ? 'Sem permissão para ver sua localização. Dá para liberar no cadeado ao lado do endereço do site.' : 'Não consegui achar sua localização agora. Tente de novo em instantes.', 8000);
+    desligarEu();
+  }, { enableHighAccuracy: true, maximumAge: 15000, timeout: 20000 });
+};
 const num = v => parseFloat(String(v).replace(',', '.'));
 const COM_FOTO = new Set(["ChIJ1QcHKyvLvJURqvw3ccDpga4", "ChIJ340B5jq0vJURijD6W6dgfz0", "ChIJ38Hdqke0vJURmOqmLWzVFMY", "ChIJ3zpn2tLLvJURLknn6b9EjQY", "ChIJ57DJCaPKvJURQb9OyTgpXow", "ChIJ5StFOXjLvJURAho4jeJ7Rr0", "ChIJ6b6wn9Q0o5URBEzw25EZ1Q8", "ChIJ6bxBXHS2vJURSNyj_tqcLEI", "ChIJ8UppV77LvJURz63k9Ikp5js", "ChIJ8yYd64u1vJUREIQJSKLi0Rs", "ChIJ9-BA6E3LvJURyYL_CIi9voU", "ChIJ98tbLQDLvJURIQ0zsez_WVs", "ChIJ9TA5IgDLvJURYgnaYz5kNIY", "ChIJB506NdfJvJURUTZkkEBTnfA", "ChIJBYCUnpfKvJURyiD_BjcjvMg", "ChIJCymzeAC1vJURQ2Q-p6R85t8", "ChIJDwpiawDLvJURMcs6A2Nt3Rs", "ChIJEXK3cMzKvJURsynfCp3EhwU", "ChIJEwbHOJPJvJUR2FYQZVvUVO0", "ChIJF544uwy3vJURW-PS-n9tTMo", "ChIJF7OZ3Ta2vJURxjMNqLmxkhY", "ChIJG-h_IP3JvJURxEeuhRZwKXg", "ChIJH1TAoYe1vJURxTtuXkVAAHM", "ChIJH8X9HLbKvJUR21lsTOTkTA0", "ChIJH9DR4eLLvJUR9dy8yAWx7TY", "ChIJHTYNhGe9vJURqJhNW6i0XeI", "ChIJHadLRQC1vJURNAx0ReCrOco", "ChIJHzxV0CzLvJURpNhwh6llXeo", "ChIJI07XtG23vJURa6YRVpX5FEc", "ChIJITLRdAy1vJURCwlN56wbr6k", "ChIJIVcLFAC3vJURiOigt_hT_fQ", "ChIJIa9ySHrLvJURNIpv2avkyxw", "ChIJJaex4zS1vJUR1ViRiuKC1q8", "ChIJKxddRQC1vJURiJz_EDhAGiM", "ChIJLTdqFdLVvJURPTABFGOmheM", "ChIJLVpd9cu5vJUR4b3n6v1kcWU", "ChIJM6xGqXi3vJURBOber72i_FQ", "ChIJN4BnbgC1vJURfpkY9U0A8_s", "ChIJO1UCEq_LvJUR3WofYDPjO_w", "ChIJOQWVjLa3vJUR6Yls3UNKG9g", "ChIJOaYHO5ixvJURR9JJOZo18e8", "ChIJP36iAT2xvJURlNzVYn0vz8o", "ChIJQSCJr9DJvJURy2RoCpdxeZg", "ChIJRZy1LQC1vJURkBSBye8X07E", "ChIJRxWVNL21vJURUcM1oPYVWl0", "ChIJS-pQ2D5WNQARtCAomHm7NZA", "ChIJS8GOFGDKvJUR0EnzP6GC3IU", "ChIJTUDhd9_KvJUR5rGt0-5JYcY", "ChIJU6Z_S2DKvJURkgXpif-XH08", "ChIJURSuMybLvJUR0_RY07TpAEg", "ChIJVaAMLADLvJURyRN8NMHB2KI", "ChIJVbrw1XO2vJURJcmRCZCHPHk", "ChIJVdTYzezMvJURS5UqwiLwcec", "ChIJXVclmJm1vJURRirVaEvOwGk", "ChIJYzazQdbKvJURIQzSn_DUDJs", "ChIJZWn94-bLvJURXMuiHSivpBU", "ChIJZz5riM-1vJUR2G9x2av27Es", "ChIJ_Vo5PEqxvJURNPMQByRVozk", "ChIJ_wvOOAC1vJURd84WXCB0P-Y", "ChIJa5hUcdXLvJURNNtMelMawFM", "ChIJbUtpXADLvJURxlXJ_zeD3jk", "ChIJbW3ri3-1vJURDLNmGk7giCM", "ChIJc1RekrY0o5URDbRYiHSypRw", "ChIJd8NxEAC3vJURrf2Tj-UWh_c", "ChIJdf8YUA7KvJURmCvgdMA1-F4", "ChIJdxfr7ce1vJURUPUXtuU7mok", "ChIJeVHfiLTTvJURgMf987fpT8E", "ChIJeZBdPczKvJUR0HBJJSy2NiI", "ChIJfe2Q_5DKvJUR87yqng3e3O8", "ChIJg62EkUPLvJURNSVsEQenswc", "ChIJi6VloOO1vJURzeii4qgmagQ", "ChIJi7cEmyO1vJUR1_t5THXyioc", "ChIJiW5OYADLvJUR3S0d3hq08rE", "ChIJieMhFzfLvJURi9xLsj7xmNk", "ChIJkXQzQWzLvJURFExxw_LIk8g", "ChIJl1STDLbKvJUR2N8m7iZq6sU", "ChIJm1VdjT-1vJUR-QBpgx3eg0I", "ChIJnQTq4Zq1vJURgyfz4KsoKNY", "ChIJnf7IziWqSgARhn__AI9FKcY", "ChIJnfiT6_jKvJURV--NaRpVlw0", "ChIJo1yOZQw1o5URD2kaGOEqlBs", "ChIJoYcx1GvIvJURelmuyRr4BfU", "ChIJpyXrhpHKvJURcV5NDSbxPvw", "ChIJqYAQwk62vJURiouHkJUOTrY", "ChIJr1YG_YDKvJURYvDBwGUvToE", "ChIJr4VDbwDLvJURi5MhF6KLNNM", "ChIJrUxVfEKxvJURzj8mZkz43AA", "ChIJrXCyZSm1vJURbXp_7R0OsKs", "ChIJrYyRMOS1vJUR20oI6q4afBs", "ChIJrx1tfgC3vJURmqURtEVKiKI", "ChIJs2XPmoG1vJURwboMb5sigY0", "ChIJt7S9jc7KvJURKxSfAlOXQYM", "ChIJtWLd3l_LvJURAllcsfehMWo", "ChIJu5-1M7G3vJURAGXaT5m5nPA", "ChIJuYqwLzjIvJURjmqFcomnDOo", "ChIJubU_dkS2vJURneV_iD0HkzM", "ChIJva1bJgDLvJURHpXbHPsVgpI", "ChIJw6bWt1zKvJURP_4wICboImw", "ChIJw9joZSvLvJURG2FRKLNI7HA", "ChIJwYZ-dAC1vJURIvomNSNQvrQ", "ChIJxS5NRSq0vJURhJjVJpYGgLQ", "ChIJyQwjzbTLvJURZRDgVbk5-c4", "ChIJyRR1IgC1vJUR4GPKhF6INQE"]);   // lugares vindos da planilha que já têm foto em fotos/ e mini/
 async function sincronizar() {
