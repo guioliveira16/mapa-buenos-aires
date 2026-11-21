@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Buenos Aires do Gui</title>
+<meta name="description" content="Os 114 lugares que o Gui salvou em Buenos Aires, num mapa com ruas, parques e subte, com fotos e notas.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,500..800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+/* Hallmark · shape: app screen · genre: editorial · theme: Editorial (deal 1/3, seed pocket-city-guide-app-cd27·5e6c58b0·2026-11-20·r0) · redesign: full
+ * nav: a masthead with the title, the standfirst and the search · signature: the city printed as a magazine map, each place pinned by its own photograph · states: loading, error, empty, full
+ * axes: light/display-condensed/chromatic-green · posture: restrained · contrast: pass · v2.0.0 */
+/* Hallmark · pre-emit critique: P4 H3 E4 S4 R4 V4 · weakest: H, an app screen has no hero; the map and its photo pins carry the first screen */
+/* Hallmark · dropped the emoji pins and chips · Floor 11 names an emoji as an icon; pins are now the place's photograph and the sheet keeps the emojis as category keys */
+:root {
+  color-scheme: light;
+  --space-3xs: 2px; --space-2xs: 4px; --space-xs: 8px; --space-sm: 12px; --space-md: 16px; --space-lg: 24px; --space-xl: 40px;
+  --text-xs: 0.75rem; --text-sm: 0.875rem; --text-md: 1rem; --text-lg: 1.2rem; --text-xl: 1.44rem; --text-2xl: 1.728rem; --text-3xl: 2.074rem;
+  --dur-micro: 120ms; --dur-short: 220ms; --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --color-paper: oklch(97% 0.007 86); --color-paper-2: oklch(94% 0.010 86); --color-paper-3: oklch(91% 0.012 84);
+  --color-ink: oklch(16% 0.012 280); --color-ink-2: oklch(29% 0.011 280); --color-muted: oklch(48% 0.010 75);
+  --color-rule: oklch(85% 0.009 85); --color-rule-2: oklch(64% 0.010 80);
+  --color-accent: oklch(49% 0.130 152); --color-accent-ink: oklch(98% 0.005 88); --color-focus: oklch(52% 0.135 152);
+  --font-display: "Bricolage Grotesque", ui-sans-serif, sans-serif; --font-body: "Source Serif 4", ui-serif, Georgia, serif;
+  --rule-hair: 1px; --rule-heavy: 4px;
+  --tracking-display: -0.012em;
+  /* the map's own colours, drawn on canvas from these tokens */
+  --map-outside: oklch(94.5% 0.010 84); --map-land: oklch(98.5% 0.006 86); --map-water: oklch(88% 0.028 225); --map-park: oklch(92% 0.032 140);
+  --map-local: oklch(84% 0.008 85); --map-compl: oklch(76% 0.010 80); --map-princ: oklch(58% 0.010 80); --map-tronc: oklch(29% 0.011 280);
+  --map-label: oklch(42% 0.010 75); --map-label-2: oklch(52% 0.010 75); --map-rail: oklch(52% 0.012 80); --map-water-label: oklch(45% 0.05 230); --map-park-label: oklch(42% 0.06 145); --map-halo: oklch(98.5% 0.006 86);
+  /* the subte's own line colours */
+  --line-a: oklch(68% 0.13 228); --line-b: oklch(58% 0.21 27); --line-c: oklch(47% 0.15 258); --line-d: oklch(62% 0.16 155); --line-e: oklch(45% 0.15 312); --line-h: oklch(85% 0.17 95);
+}
+*, *::before, *::after { box-sizing: border-box; min-width: 0; }
+html, body { overflow-x: clip; height: 100%; }
+html { scrollbar-color: var(--color-rule-2) var(--color-paper); }
+body { margin: 0; background: var(--color-paper); color: var(--color-ink-2); font-family: var(--font-body); font-size: var(--text-md); line-height: 1.55; font-optical-sizing: auto; -webkit-font-smoothing: antialiased; caret-color: var(--color-accent); }
+::selection { background: color-mix(in oklab, var(--color-accent) 22%, transparent); }
+:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+h1, h2, h3 { margin: 0; font-family: var(--font-display); font-weight: 800; font-variation-settings: "wdth" 75, "opsz" 96; letter-spacing: var(--tracking-display); line-height: 1; color: var(--color-ink); font-variant-numeric: lining-nums tabular-nums; overflow-wrap: break-word; min-width: 0; text-wrap: balance; }
+p { margin: 0; }
+img { display: block; max-width: 100%; height: auto; }
+[hidden] { display: none !important; }
+[disabled] { opacity: 0.55; cursor: not-allowed; }
+button, input { font: inherit; color: inherit; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.label { font-family: var(--font-display); font-weight: 500; font-variation-settings: "opsz" 12; }
+
+.app { display: grid; grid-template-columns: minmax(340px, 420px) minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); height: 100dvh; }
+.mast { grid-column: 1 / -1; display: flex; align-items: center; gap: var(--space-lg); padding: var(--space-sm) var(--space-lg); border-bottom: var(--rule-heavy) solid var(--color-ink); background: var(--color-paper); }
+.mast h1 { font-size: var(--text-3xl); line-height: 0.92; white-space: nowrap; }
+.mast .standfirst { font-size: var(--text-lg); line-height: 1.25; color: var(--color-ink); max-width: 36ch; }
+.search { margin-left: auto; width: min(340px, 32vw); height: 44px; padding: 0 var(--space-sm); border: var(--rule-hair) solid var(--color-rule-2); border-radius: 0; background: var(--color-paper); font-family: var(--font-display); font-variation-settings: "opsz" 12; font-size: 16px; }
+.search:focus-visible { outline-offset: -2px; border-color: var(--color-ink); }
+.side { display: flex; flex-direction: column; overflow: hidden; border-right: var(--rule-hair) solid var(--color-rule-2); }
+.cats { display: flex; flex-wrap: wrap; gap: var(--space-xs); padding: var(--space-md) var(--space-lg); border-bottom: var(--rule-hair) solid var(--color-rule); }
+.cell { display: inline-flex; align-items: baseline; gap: var(--space-xs); min-height: 40px; padding: var(--space-xs) var(--space-sm); border: var(--rule-hair) solid var(--color-ink); border-radius: 0; background: var(--color-paper); color: var(--color-ink); font-family: var(--font-display); font-weight: 500; font-variation-settings: "opsz" 12; font-size: var(--text-sm); line-height: 1.4; cursor: pointer; transition: background-color var(--dur-micro) var(--ease-out), color var(--dur-micro) var(--ease-out); }
+.cell .n { color: var(--color-muted); font-variant-numeric: lining-nums tabular-nums; }
+.cell:hover { background: var(--color-paper-2); }
+.cell[aria-pressed=true] { background: var(--color-ink); color: var(--color-paper); }
+.cell[aria-pressed=true] .n { color: inherit; }
+.list { flex: 1; overflow: auto; padding: 0 var(--space-lg) var(--space-lg); }
+.gh { display: flex; align-items: baseline; gap: var(--space-sm); margin-top: var(--space-lg); padding-top: var(--space-xs); border-top: var(--rule-heavy) solid var(--color-ink); }
+.gh h2 { font-size: var(--text-2xl); }
+.gh .n { margin-left: auto; font-family: var(--font-display); font-weight: 800; font-variation-settings: "wdth" 75, "opsz" 96; font-size: var(--text-xl); color: var(--color-muted); font-variant-numeric: lining-nums tabular-nums; }
+.row { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: var(--space-sm); align-items: start; width: 100%; padding: var(--space-sm) 0; border: 0; border-bottom: var(--rule-hair) solid var(--color-rule); background: none; text-align: left; cursor: pointer; }
+.row:hover b { text-decoration: underline; text-decoration-color: var(--color-accent); text-underline-offset: 0.18em; }
+.row.on { background: var(--color-paper-2); }
+.thumb { width: 64px; height: 64px; object-fit: cover; outline: 1px solid color-mix(in oklab, var(--color-ink) 8%, transparent); outline-offset: -1px; background: var(--color-paper-3); filter: saturate(0.9) contrast(1.04); }
+.thumb--vazio { display: grid; place-items: center; font-family: var(--font-display); font-weight: 800; font-variation-settings: "wdth" 75, "opsz" 96; font-size: var(--text-xl); color: var(--color-muted); }
+.row b { display: block; font-family: var(--font-display); font-weight: 800; font-variation-settings: "wdth" 75, "opsz" 96; font-size: var(--text-xl); line-height: 1.05; color: var(--color-ink); letter-spacing: var(--tracking-display); }
+.row .m { display: flex; flex-wrap: wrap; gap: 0 var(--space-sm); margin-top: var(--space-2xs); font-family: var(--font-display); font-weight: 500; font-variation-settings: "opsz" 12; font-size: var(--text-sm); color: var(--color-muted); }
+.row .nt { display: block; margin-top: var(--space-2xs); font-style: italic; color: var(--color-ink-2); }
+.empty { display: grid; gap: var(--space-sm); justify-items: start; padding: var(--space-lg) 0; }
+.btn { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 var(--space-lg); border: var(--rule-hair) solid var(--color-ink); border-radius: 0; background: none; color: var(--color-ink); font-family: var(--font-display); font-weight: 500; font-variation-settings: "opsz" 12; font-size: var(--text-md); text-decoration: none; cursor: pointer; transition: background-color var(--dur-micro) var(--ease-out), color var(--dur-micro) var(--ease-out); }
+.btn:hover { background: var(--color-paper-2); }
+.btn--primary { background: var(--color-ink); color: var(--color-paper); }
+.btn--primary:hover { background: var(--color-ink-2); }
+.credits { padding: var(--space-sm) var(--space-lg); border-top: var(--rule-hair) solid var(--color-rule); color: var(--color-muted); font-family: var(--font-display); font-variation-settings: "opsz" 12; font-size: var(--text-xs); }
+.credits a { color: inherit; text-decoration-color: var(--color-rule-2); }
+.credits a:hover { text-decoration-color: var(--color-accent); }
+
+.map { position: relative; overflow: hidden; background: var(--map-outside); }
+.map canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
+.map canvas:active { cursor: grabbing; }
+.pins { position: absolute; inset: 0; pointer-events: none; }
+.pin { position: absolute; left: 0; top: 0; width: 46px; height: 46px; padding: 0; border: 2px solid var(--color-paper); background: var(--color-paper-3); outline: 1px solid var(--color-ink); pointer-events: auto; cursor: pointer; overflow: hidden; }
+.pin img { width: 100%; height: 100%; object-fit: cover; filter: saturate(0.9) contrast(1.04); }
+.pin .ini { display: grid; place-items: center; height: 100%; font-family: var(--font-display); font-weight: 800; font-variation-settings: "wdth" 75, "opsz" 96; color: var(--color-ink); }
+.pin:hover { outline: 2px solid var(--color-accent); z-index: 3; }
+.pins.far .pin { width: 12px; height: 12px; border-width: 2px; background: var(--color-ink); }
+.pins.far .pin > * { display: none; }
+.pin.sel, .pins.far .pin.sel { width: 64px; height: 64px; border-width: 3px; outline: 3px solid var(--color-accent); z-index: 4; }
+.pins.far .pin.sel > * { display: block; }
+.pin:focus-visible { outline: 3px solid var(--color-focus); }
+.ctl { position: absolute; top: var(--space-md); right: var(--space-md); display: grid; border: var(--rule-hair) solid var(--color-ink); background: var(--color-paper); }
+.ctl button { min-width: 44px; height: 44px; border: 0; border-bottom: var(--rule-hair) solid var(--color-rule); background: none; color: var(--color-ink); font-family: var(--font-display); font-weight: 500; font-variation-settings: "opsz" 12; font-size: var(--text-lg); cursor: pointer; }
+.ctl button:last-child { border-bottom: 0; padding: 0 var(--space-xs); font-size: var(--text-xs); }
+.ctl button:hover { background: var(--color-paper-2); }
+.ctl button:focus-visible { outline-offset: -3px; }
+.status { position: absolute; left: 50%; top: 50%; translate: -50% -50%; display: grid; gap: var(--space-sm); justify-items: start; max-width: min(340px, 80%); padding: var(--space-md) var(--space-lg); background: var(--color-ink); color: var(--color-paper); font-family: var(--font-display); font-variation-settings: "opsz" 12; }
+.status .btn { border-color: var(--color-paper); color: var(--color-paper); }
+.status .btn:hover { background: var(--color-ink-2); }
+
+.card { position: absolute; left: var(--space-md); bottom: var(--space-md); width: min(400px, calc(100% - 2 * var(--space-md))); max-height: calc(100% - 2 * var(--space-md)); overflow: auto; border: var(--rule-hair) solid var(--color-ink); background: var(--color-paper); color: var(--color-ink-2); z-index: 5; }
+.card .photo { aspect-ratio: 3 / 2; width: 100%; object-fit: cover; outline: 1px solid color-mix(in oklab, var(--color-ink) 8%, transparent); outline-offset: -1px; filter: saturate(0.9) contrast(1.04); }
+.card .body { display: grid; gap: var(--space-sm); padding: var(--space-md) var(--space-lg) var(--space-lg); }
+.card .head { display: flex; align-items: center; gap: var(--space-xs); }
+.card .tag { padding: var(--space-3xs) var(--space-xs); background: var(--color-accent); color: var(--color-accent-ink); font-family: var(--font-display); font-weight: 500; font-variation-settings: "opsz" 12; font-size: var(--text-sm); }
+.card .bairro { font-family: var(--font-display); font-weight: 500; font-variation-settings: "opsz" 12; font-size: var(--text-sm); color: var(--color-muted); }
+.card .x { margin-left: auto; width: 44px; height: 44px; border: var(--rule-hair) solid var(--color-ink); background: var(--color-paper); color: var(--color-ink); font-size: var(--text-xl); line-height: 1; cursor: pointer; }
+.card .x:hover { background: var(--color-paper-2); }
+.card h2 { font-size: var(--text-3xl); }
+.card .standfirst { font-size: var(--text-lg); line-height: 1.3; color: var(--color-ink); }
+.card blockquote { margin: 0; font-style: italic; font-size: var(--text-lg); line-height: 1.35; color: var(--color-ink); }
+.card blockquote cite { display: block; margin-top: var(--space-2xs); font-style: normal; font-family: var(--font-display); font-weight: 500; font-variation-settings: "opsz" 12; font-size: var(--text-xs); color: var(--color-muted); }
+.card dl { display: grid; grid-template-columns: auto minmax(0, 1fr); margin: 0; border-top: var(--rule-heavy) solid var(--color-ink); font-size: var(--text-sm); }
+.card dt, .card dd { margin: 0; padding: var(--space-xs) 0; border-bottom: var(--rule-hair) solid var(--color-rule); }
+.card dt { padding-right: var(--space-md); font-family: var(--font-display); font-weight: 500; font-variation-settings: "opsz" 12; color: var(--color-muted); }
+.card .acts { display: flex; flex-wrap: wrap; gap: var(--space-xs); }
+
+@media (max-width: 60rem) {
+  .app { display: flex; flex-direction: column; height: auto; }
+  .mast { position: sticky; top: 0; z-index: 10; flex-wrap: wrap; gap: var(--space-xs) var(--space-md); padding: var(--space-sm) var(--space-md); }
+  .mast h1 { font-size: var(--text-2xl); }
+  .mast .standfirst { font-size: var(--text-sm); flex: 1; }
+  .search { order: 3; width: 100%; margin-left: 0; }
+  .side { display: contents; }
+  .map { order: 1; height: 58vh; min-height: 340px; border-bottom: var(--rule-heavy) solid var(--color-ink); }
+  .cats { order: 2; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding: var(--space-sm) var(--space-md); }
+  .cell { flex: none; }
+  .list { order: 3; overflow: visible; padding: 0 var(--space-md) 50vh; }
+  .credits { order: 4; padding-inline: var(--space-md); }
+  .card { position: fixed; left: var(--space-xs); right: var(--space-xs); bottom: var(--space-xs); width: auto; max-height: 74vh; z-index: 20; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: 0.01ms !important; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="mast">
+    <h1>Buenos Aires</h1>
+    <p class="standfirst" id="count">114 lugares que o Gui salvou, da parrilla ao café.</p>
+    <input class="search" id="q" type="search" name="q" placeholder="Buscar lugar, bairro ou nota" aria-label="Buscar lugar, bairro ou nota" autocomplete="off" inputmode="search">
+  </header>
+  <aside class="side">
+    <h2 class="visually-hidden">Categorias</h2>
+    <div class="cats" id="cats"></div>
+    <div class="list" id="list" aria-live="polite"></div>
+    <p class="credits">Lista salva no Google Maps em 20/11/2026. Fotos do Google Maps. Ruas, parques e subte: <a href="https://data.buenosaires.gob.ar/" target="_blank" rel="noopener">BA Data</a>, Governo da Cidade de Buenos Aires. Arredores e trens: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© colaboradores do OpenStreetMap</a>.</p>
+  </aside>
+  <main class="map" id="map">
+    <canvas id="cv" aria-label="Mapa de Buenos Aires com ruas, parques, subte e os lugares salvos"></canvas>
+    <div class="pins" id="pins"></div>
+    <div class="ctl">
+      <button type="button" id="zin" aria-label="Aproximar">+</button>
+      <button type="button" id="zout" aria-label="Afastar">−</button>
+      <button type="button" id="fit">Ver todos</button>
+    </div>
+    <div class="status" id="status" role="status"><p>Carregando o mapa</p></div>
+    <article class="card" id="card" hidden></article>
+  </main>
+</div>
+<noscript><p>Este mapa precisa de JavaScript para abrir.</p></noscript>
+<script type="application/json" id="data">{"categorias":[["🥩","Parrilla"],["🍝","Bodegón & massas"],["🍕","Pizza"],["🥪","Sanduíche & burger"],["🌍","Cozinhas do mundo"],["🍽️","Restaurante"],["☕","Café"],["🥐","Padaria & doces"],["🍦","Sorvete"],["🍸","Bar"],["🏛️","Passeio"],["🛒","Compras"]],"lugares":[{"id":"7827443903715863464","e":"☕","n":"Tienda de Café","d":"","no":"","t":"Espresso bar","p":"ARS 10–20 mil","a":"","b":"Palermo","x":1534.1,"y":935.2,"f":1},{"id":"9292897202349173970","e":"🥩","n":"Parrilla Peña","d":"","no":"","t":"Churrascaria","p":"ARS 30–70 mil","a":"Rodríguez Peña 682, C1020 CABA","b":"San Nicolás","x":1716.2,"y":1110.2,"f":1},{"id":"13852106766400102342","e":"🥪","n":"Paulin","d":"","no":"Sanguches gigantes","t":"Restaurante","p":"ARS 20–30 mil","a":"Sarmiento 635, C1041AAM Cdad. Autónoma de Buenos Aires","b":"San Nicolás","x":1846.2,"y":1144.8,"f":1},{"id":"1707863344414580491","e":"🥩","n":"Campaso","d":"","no":"","t":"Churrascaria","p":"ARS 20–30 mil","a":"Bernardo de Irigoyen 82, C1072 Cdad. Autónoma de Buenos Aires","b":"Monserrat","x":1807.5,"y":1193.2,"f":1},{"id":"13789136489743139206","e":"🌍","n":"Nikkai Shokudo","d":"","no":"","t":"Japonesa","p":"ARS 20–40 mil","a":"Av. Independencia 732, C1099AAU CABA","b":"San Telmo","x":1841.0,"y":1275.2,"f":1},{"id":"7221264919982052098","e":"🍝","n":"El Nacional","d":"","no":"","t":"Bar e grill","p":"ARS 10–20 mil","a":"Bolívar 220, C1066AAF Cdad. Autónoma de Buenos Aires","b":"Monserrat","x":1865.3,"y":1204.6,"f":1},{"id":"753617388106102906","e":"🍝","n":"Pippo","d":"","no":"Restaurante muito barato de BSAS","t":"Ambiente familiar","p":"ARS 20–30 mil","a":"Montevideo 341, C1019ABG Cdad. Autónoma de Buenos Aires","b":"San Nicolás","x":1744.1,"y":1147.0,"f":1},{"id":"18099471889947197287","e":"🍝","n":"Club del Progreso Restaurante","d":"","no":"Merienda libre por $16k e parrila libre\n\nhttps://www.instagram.com/reel/DSJDqyQEYP4/","t":"Argentina","p":"ARS 20–70 mil","a":"Sarmiento 1334, C1041 Cdad. Autónoma de Buenos Aires","b":"San Nicolás","x":1765.8,"y":1153.2,"f":1},{"id":"6277854929752550349","e":"🥩","n":"La Entrañita","d":"","no":"","t":"Churrascaria","p":"ARS 10–20 mil","a":"","b":"Monserrat","x":1821.8,"y":1240.1,"f":1},{"id":"18175846174951331758","e":"🍝","n":"Cooperativa Alé Alé","d":"","no":"https://www.instagram.com/reel/DPch6EDCV9D/","t":"Churrascaria","p":"ARS 20–60 mil","a":"José A. Cabrera 4270, C1414BGB Cdad. Autónoma de Buenos Aires","b":"Palermo","x":1437.5,"y":1050.1,"f":1},{"id":"13448541608268272525","e":"🍕","n":"Güerrín","d":"","no":"","t":"Pizza","p":"ARS 10–30 mil","a":"Av. Corrientes 1368, C1043 CABA","b":"San Nicolás","x":1761.6,"y":1140.8,"f":1},{"id":"11608039888759793091","e":"🏛️","n":"Cemitério da Recoleta","d":"","no":"","t":"","p":"","a":"Junín 1760, C1113 CABA","b":"Recoleta","x":1704.3,"y":973.6,"f":1},{"id":"5911962012960146477","e":"☕","n":"Café Tortoni","d":"","no":"","t":"Café","p":"ARS 10–20 mil","a":"Av. de Mayo 825, C1084 CABA","b":"Monserrat","x":1825.6,"y":1186.5,"f":1},{"id":"4549150076375108927","e":"🥩","n":"CARNEROS Bar & Fuegos","d":"","no":"","t":"Churrascaria","p":"ARS 30–90 mil","a":"","b":"Palermo","x":1493.8,"y":938.3,"f":1},{"id":"5936364565645344418","e":"🍸","n":"El Federal Bar","d":"","no":"","t":"Bar","p":"ARS 20–30 mil","a":"Carlos Calvo 599, C1068 Cdad. Autónoma de Buenos Aires","b":"San Telmo","x":1858.7,"y":1295.7,"f":1},{"id":"4887127765757725193","e":"🥪","n":"Fat Broder","d":"","no":"","t":"Hambúrguer","p":"ARS 20–30 mil","a":"","b":"Palermo","x":1501.6,"y":976.6,"f":1},{"id":"17197131389743302354","e":"🏛️","n":"Museu de Arte Latino-Americana de Buenos Aires","d":"","no":"","t":"","p":"","a":"Av. Pres. Figueroa Alcorta 3415, C1425CLA CABA","b":"Palermo","x":1618.3,"y":869.0,"f":1},{"id":"12639077258570133903","e":"🥩","n":"Parrilla Don Benito","d":"","no":"","t":"Churrascaria","p":"ARS 40–100 mil","a":"Gorriti 5505, C1414BKC Cdad. Autónoma de Buenos Aires","b":"Palermo","x":1347.0,"y":954.2,"f":1},{"id":"59957367500970023","e":"🥩","n":"Gran Parrilla lo de Jaime","d":"","no":"Milanesa gigantes","t":"Churrascaria","p":"ARS 20–60 mil","a":"Honduras 4518, C1414 Cdad. Autónoma de Buenos Aires","b":"Palermo","x":1437.3,"y":1020.6,"f":1},{"id":"263615020140991336","e":"🍽️","n":"Betty and Marcelo","d":"","no":"Precisa de reserva e","t":"","p":"","a":"Nicaragua 4336, C1414BVB Cdad. Autónoma de Buenos Aires","b":"Palermo","x":1458.6,"y":1001.7,"f":1},{"id":"15562971572117617248","e":"🥪","n":"Bao Burger - ViaViva","d":"","no":"Hambúrguer de asado + pão de Bao","t":"","p":"","a":"Av. Olazábal 1780, C1428 Cdad. Autónoma de Buenos Aires","b":"Belgrano","x":1215.9,"y":670.1,"f":1},{"id":"4910783675114392275","e":"🍽️","n":"El Boliche de Nico","d":"","no":"","t":"","p":"","a":"Av. de los Incas 4257, C1427 Cdad. Autónoma de Buenos Aires","b":"Villa Ortúzar","x":1056.1,"y":896.2,"f":1},{"id":"14034354997670725078","e":"🍦","n":"Alchemy","d":"","no":"","t":"","p":"","a":"Humboldt 1923, C1414CTU Cdad. Autónoma de Buenos Aires","b":"Palermo","x":1371.8,"y":933.2,"f":1},{"id":"13599468281607434951","e":"🍕","n":"Banchero \"La Verdadera Pizza\"","d":"","no":"A criadora da Fugazetta","t":"","p":"","a":"Av. Corrientes 1604, C1042 AAP, Cdad. Autónoma de Buenos Aires","b":"San Nicolás","x":1732.9,"y":1143.4,"f":1},{"id":"5996665133387583913","e":"🏛️","n":"Teatro Colón","d":"","no":"","t":"","p":"","a":"Cerrito 628, C1010 CABA","b":"San Nicolás","x":1783.5,"y":1111.5,"f":1},{"id":"6868543431240214617","e":"🥩","n":"Don Julio","d":"","no":"","t":"","p":"","a":"Guatemala 4699, C1425 CABA","b":"Palermo","x":1446.7,"y":963.7,"f":1},{"id":"14662241776029426642","e":"🍸","n":"Los Galgos Bar","d":"","no":"","t":"","p":"","a":"Av. Callao 501, C1022AAF Cdad. Autónoma de Buenos Aires","b":"San Nicolás","x":1710.0,"y":1130.4,"f":1},{"id":"5556788274779812771","e":"🍝","n":"Bellagamba BODEGÓN","d":"","no":"","t":"","p":"","a":"Av. Rivadavia 2138, C1034 Cdad. Autónoma de Buenos Aires","b":"Balvanera","x":1673.2,"y":1196.8,"f":1},{"id":"6783284434165223701","e":"🥐","n":"Salvaje Bakery","d":"","no":"","t":"","p":"","a":"Av. Dorrego 1829, C1414 Cdad. Autónoma de Buenos Aires","b":"Palermo","x":1299.8,"y":907.5,"f":1},{"id":"401118517299344147","e":"🍕","n":"La Mezzetta","d":"","no":"Pizzaria do carajo - Fugazetta","t":"","p":"","a":"Av. Álvarez Thomas 1321, C1427 Cdad. Autónoma de Buenos Aires","b":"Villa Ortúzar","x":1145.3,"y":879.5,"f":1},{"id":"2901540200274937279","e":"🍕","n":"El Cuartito","d":"","no":"","t":"Pizza","p":"ARS 20–30 mil","a":"Talcahuano 937, C1001 CABA","b":"Retiro","x":1765.7,"y":1078.1,"f":1},{"id":"6717993151515813316","e":"🍸","n":"Uptown","d":"","no":"","t":"Bar","p":"ARS 20–80 mil","a":"Arévalo 2030, C1414CQP Cdad. Autónoma de Buenos Aires","b":"Palermo","x":1338.4,"y":880.4,"f":1},{"id":"9991590050885311288","e":"🍝","n":"Chiquilin","d":"","no":"","t":"Churrascaria","p":"ARS 30–70 mil","a":"Sarmiento 1599 esq. Montevideo, Cdad. Autónoma de Buenos Aires","b":"San Nicolás","x":1735.5,"y":1152.7,"f":1},{"id":"11565776114449552325","e":"🥩","n":"La Cabrera","d":"","no":"","t":"","p":"","a":"José A. Cabrera 5127, C1414BGQ Cdad. Autónoma de Buenos Aires","b":"Palermo","x":1372.7,"y":989.8,"f":1},{"id":"1309826766924101641","e":"🥩","n":"Parrilla Los Talas","d":"","no":"","t":"Restaurante","p":"ARS 40–50 mil","a":"","b":"Villa José León Suárez","x":248.9,"y":291.1,"f":1,"fora":1},{"id":"4532222890804618292","e":"🥪","n":"El Colmo","d":"","no":"Sanguches muito bons.","t":"Restaurante","p":"ARS 30–40 mil","a":"","b":"Palermo","x":1329.5,"y":898.0,"f":1},{"id":"7686189164435152750","e":"🍝","n":"El Bodegón de Benito Nazar","d":"","no":"Milanesas a vontade","t":"Argentina","p":"ARS 20–40 mil","a":"Antezana 340, C1414EEH Cdad. Autónoma de Buenos Aires","b":"Villa Crespo","x":1276.6,"y":1151.7,"f":1},{"id":"9848423680871595876","e":"🥩","n":"Siga La Vaca Express","d":"","no":"Tenedor libre","t":"Restaurante","p":"ARS 10–50 mil","a":"Av. Monroe 1802, C1428 Cdad. Autónoma de Buenos Aires","b":"Belgrano","x":1198.9,"y":651.1,"f":1},{"id":"3219113111309737762","e":"🥩","n":"Siga la Vaca","d":"","no":"Comida a vontade","t":"Churrascaria","p":"ARS 40–60 mil","a":"Av. Alicia Moreau de Justo 1714, C1099 Cdad. Autónoma de Buenos Aires","b":"Puerto Madero","x":1933.3,"y":1286.8,"f":1},{"id":"12981836464889230521","e":"🍝","n":"La Alacena Pastificio & Salumeria","d":"","no":"Massa e menu del dia:\n\nhttps://www.instagram.com/reel/DOCOa3-gaLM/","t":"Italiana","p":"ARS 20–40 mil","a":"José A. Cabrera 4002, C1186 AAZ, Cdad. Autónoma de Buenos Aires","b":"Palermo","x":1454.5,"y":1064.4,"f":1},{"id":"2821808443117362107","e":"🥩","n":"Parrilla Aires Criollos","d":"","no":"","t":"Churrascaria","p":"ARS 30–80 mil","a":"Av. Sta. Fe 1773, C1060ABD Cdad. Autónoma de Buenos Aires","b":"Recoleta","x":1705.4,"y":1057.1,"f":1},{"id":"16781317158715001044","e":"🍝","n":"Los Orientales","d":"","no":"","t":"Restaurante","p":"ARS 20–30 mil","a":"Av. Rivadavia 3981, C1204 Cdad. Autónoma de Buenos Aires","b":"Almagro","x":1463.8,"y":1217.4,"f":1},{"id":"16370748154409230945","e":"🍸","n":"Bar de Cao","d":"","no":"","t":"Bar","p":"ARS 20–30 mil","a":"Av. Independencia 2400, C1225AAS Cdad. Autónoma de Buenos Aires","b":"San Cristóbal","x":1647.1,"y":1287.4,"f":1},{"id":"11417819406583027937","e":"🥪","n":"Frank's Grill","d":"","no":"","t":"Hambúrguer","p":"ARS 20–30 mil","a":"Cdad. de la Paz 415, C1426 Cdad. Autónoma de Buenos Aires","b":"Colegiales","x":1295.6,"y":835.4,"f":1},{"id":"7253545430211235900","e":"🍝","n":"La Sarita Florida","d":"","no":"","t":"Restaurante","p":"ARS 30–50 mil","a":"España 506, B1605 Florida, Provincia de Buenos Aires","b":"Florida","x":935.8,"y":470.9,"f":1,"fora":1},{"id":"2162537951917082286","e":"🥪","n":"Manfred Hot Dogs","d":"","no":"","t":"Cachorro-quente","p":"ARS 10–20 mil","a":"Av. Francisco Beiró 4694, C1419 HZV Cdad. Autónoma de Buenos Aires","b":"Villa Devoto","x":687.0,"y":1189.6,"f":1},{"id":"4755613930769190194","e":"🏛️","n":"Basílica de Nossa Senhora Auxiliadora e São Carlos","d":"","no":"","t":"","p":"","a":"Av. Hipólito Yrigoyen 3999, C1181 Cdad. Autónoma de Buenos Aires","b":"Almagro","x":1457.4,"y":1241.0,"f":1},{"id":"14163631683009997945","e":"🏛️","n":"Palacio Raggio","d":"","no":"","t":"","p":"","a":"C1212 Cidade Autônoma de Buenos Aires","b":"Almagro","x":1413.8,"y":1248.3,"f":0},{"id":"15300043204249920826","e":"🥩","n":"Desnivel","d":"","no":"","t":"Bife","p":"ARS 20–60 mil","a":"Defensa 855, C1065 AAO, Cdad. Autónoma de Buenos Aires","b":"San Telmo","x":1878.2,"y":1278.7,"f":1},{"id":"10780452265640274146","e":"🥐","n":"Candy Moon","d":"","no":"Las Crumbl Donuts","t":"Donuts","p":"ARS 10–20 mil","a":"Tte. Benjamín Matienzo 1895, C1426 Cdad. Autónoma de Buenos Aires","b":"Palermo","x":1370.7,"y":777.0,"f":1},{"id":"11269808887542101216","e":"🥩","n":"Parrilla SecreTiTo","d":"","no":"Parrilla barata, tudo do Racing.","t":"Restaurante","p":"ARS 30–70 mil","a":"Av. Dorrego 2720, C1425 Cdad. Autónoma de Buenos Aires","b":"Palermo","x":1376.7,"y":841.5,"f":1},{"id":"11321150364624348759","e":"🌍","n":"La Torca Palermo","d":"","no":"Comida hispânica em Palermo","t":"Espanhola","p":"ARS 30–40 mil","a":"Costa Rica 4001, C1176ADC Cdad. Autónoma de Buenos Aires","b":"Palermo","x":1487.1,"y":1013.9,"f":1},{"id":"10072101745687507342","e":"🌍","n":"Nuevo Guise","d":"","no":"","t":"Espanhola","p":"ARS 10–20 mil","a":"Guise 1902, C1425 DPG, Cdad. Autónoma de Buenos Aires","b":"Palermo","x":1537.8,"y":1008.9,"f":1},{"id":"12252097216551854125","e":"🍝","n":"El Bochín","d":"","no":"","t":"Argentina","p":"ARS 20–30 mil","a":"Julián Álvarez 2355, C1425 Cdad. Autónoma de Buenos Aires","b":"Palermo","x":1511.9,"y":978.3,"f":1},{"id":"13378711918945142896","e":"🍝","n":"Cortázar","d":"","no":"","t":"Restaurante","p":"ARS 10–30 mil","a":"José A. Cabrera 3797, C1186 Buenos Aires","b":"Palermo","x":1483.0,"y":1063.9,"f":1},{"id":"18248314690789813387","e":"🍝","n":"La Despensa de Aurora","d":"","no":"Flan con dulce reconhecido","t":"Restaurante","p":"ARS 20–60 mil","a":"Griveo 3501, C1417 Cdad. Autónoma de Buenos Aires","b":"Villa Devoto","x":724.5,"y":994.3,"f":1},{"id":"12847817488978899694","e":"🍦","n":"Kiosco de helados El Preferido","d":"","no":"Sorvetes do El Preferido","t":"","p":"","a":"Guatemala 4785, C1425BUM Cdad. Autónoma de Buenos Aires","b":"Palermo","x":1440.2,"y":956.4,"f":1},{"id":"5854901916648905004","e":"🍽️","n":"Olla 7","d":"","no":"https://www.instagram.com/reel/DRrq6zSEVD5/","t":"Restaurante","p":"ARS 30–70 mil","a":"Charlone 999, C1427 Cdad. Autónoma de Buenos Aires","b":"Chacarita","x":1170.4,"y":906.7,"f":1},{"id":"14021229820046503738","e":"🥩","n":"RESTAURANTE LA ESTANCIA","d":"","no":"https://www.instagram.com/reel/DOzS2eUCXox/","t":"Churrascaria","p":"ARS 30–90 mil","a":"Lavalle 941, C1047 Cdad. Autónoma de Buenos Aires","b":"San Nicolás","x":1809.3,"y":1124.1,"f":1},{"id":"11871548953727231363","e":"🛒","n":"The Bohemians srl","d":"","no":"","t":"Atacadista de confeitaria","p":"","a":"O'Brien 1171, C1137 Cdad. Autónoma de Buenos Aires","b":"Constitución","x":1792.6,"y":1389.5,"f":1},{"id":"5734007618285484365","e":"🥩","n":"Parrilla El Pobre Luis","d":"","no":"","t":"Churrascaria","p":"ARS 30–80 mil","a":"Arribeños 2393, C1428APE Cdad. Autónoma de Buenos Aires","b":"Belgrano","x":1216.2,"y":653.4,"f":1},{"id":"1370665966982825346","e":"🏛️","n":"Dr. Rodolfo Rivarola","d":"","no":"Rua espelho","t":"","p":"","a":"C1038 Cidade Autônoma de Buenos Aires","b":"San Nicolás","x":1766.5,"y":1175.5,"f":1},{"id":"18291716965241105626","e":"🍝","n":"Barcelona Asturias","d":"","no":"","t":"Bar e grill","p":"ARS 20–40 mil","a":"Av. Córdoba 5899, C1414BBE Cdad. Autónoma de Buenos Aires","b":"Palermo","x":1290.7,"y":953.3,"f":1},{"id":"2187086746888067485","e":"🍕","n":"La Vicca","d":"","no":"Pizza livre por $15k","t":"Pizza","p":"ARS 10–20 mil","a":"José A. Cabrera 3301, C1186AAK Cdad. Autónoma de Buenos Aires","b":"Recoleta","x":1538.2,"y":1067.1,"f":1},{"id":"1110439343743523998","e":"🥩","n":"Distrito Restó","d":"","no":"","t":"Churrascaria","p":"ARS 20–50 mil","a":"La Rioja 2002, C1244ABQ Cdad. Autónoma de Buenos Aires","b":"Parque Patricios","x":1598.9,"y":1447.9,"f":1},{"id":"8331080157723654143","e":"☕","n":"WAT COFFEE","d":"","no":"","t":"Cafeteria","p":"ARS 10–20 mil","a":"Chile 980, C1098 Cdad. Autónoma de Buenos Aires","b":"Monserrat","x":1812.7,"y":1265.8,"f":1},{"id":"4981850440310245213","e":"☕","n":"THE GLORY HOLE CAFE","d":"","no":"","t":"Espresso bar","p":"ARS 1–10.000","a":"Humberto 1º 998, C1072 Cdad. Autónoma de Buenos Aires","b":"Constitución","x":1812.2,"y":1309.6,"f":1},{"id":"14580487162466889059","e":"🥪","n":"Chori 33","d":"","no":"","t":"Fast Food","p":"ARS 10–20 mil","a":"Bernardo de Irigoyen 266, C1072AAF Cdad. Autónoma de Buenos Aires","b":"Monserrat","x":1807.3,"y":1213.8,"f":1},{"id":"17531144171747439761","e":"☕","n":"Hábito Café","d":"","no":"","t":"Cafeteria","p":"ARS 10–20 mil","a":"México 1152, C1097AAX Cdad. Autónoma de Buenos Aires","b":"Monserrat","x":1791.1,"y":1253.9,"f":1},{"id":"799024370128085","e":"🥩","n":"El Ferroviario Restaurant Parrilla","d":"","no":"","t":"Argentina","p":"ARS 30–60 mil","a":"Av. Reservistas Argentinos 219, C1408 Cdad. Autónoma de Buenos Aires","b":"Liniers","x":652.9,"y":1470.3,"f":1},{"id":"11239042841110018264","e":"🍝","n":"El Bodegón Manuel Belgrano","d":"","no":"","t":"Bar e grill","p":"ARS 20–30 mil","a":"Av. Belgrano 434, C1092AAR Cdad. Autónoma de Buenos Aires","b":"Monserrat","x":1872.1,"y":1226.5,"f":1},{"id":"2181542284095808869","e":"🍕","n":"El Mazacote","d":"","no":"","t":"Pizza","p":"ARS 10–20 mil","a":"Chile 1400, C1098ABB Cdad. Autónoma de Buenos Aires","b":"Monserrat","x":1763.5,"y":1267.4,"f":1},{"id":"15352633601989226677","e":"☕","n":"Bulgaro Cafe de especialidad","d":"","no":"Excelente medialunas & cafe con leche","t":"Espresso bar","p":"ARS 1–10.000","a":"Güemes 3626, C1414 Cdad. Autónoma de Buenos Aires","b":"Palermo","x":1531.5,"y":986.6,"f":1},{"id":"3805293727606141370","e":"☕","n":"Croque Madame","d":"","no":"","t":"Restaurante","p":"ARS 20–50 mil","a":"Av. Sta. Fe 750, C1006 Cdad. Autónoma de Buenos Aires","b":"Retiro","x":1831.5,"y":1057.7,"f":1},{"id":"16803215489616669720","e":"🥐","n":"Cocu Boulangerie","d":"","no":"","t":"","p":"","a":"Gorriti 4865, C1414 Cdad. Autónoma de Buenos Aires","b":"Palermo","x":1401.4,"y":1000.7,"f":1},{"id":"13800676498449045819","e":"☕","n":"O Gato Negro Café","d":"","no":"","t":"Espresso bar","p":"ARS 10–20 mil","a":"Av. Corrientes 1669, C1042AAC Cdad. Autónoma de Buenos Aires","b":"San Nicolás","x":1725.9,"y":1141.4,"f":1},{"id":"4224442118722690692","e":"☕","n":"Confitería La Ideal","d":"","no":"","t":"Café","p":"ARS 20–50 mil","a":"Suipacha 384, C1008AAF Cdad. Autónoma de Buenos Aires","b":"San Nicolás","x":1814.8,"y":1139.2,"f":1},{"id":"9381888857467872282","e":"☕","n":"Alvear Café","d":"","no":"","t":"Padaria","p":"ARS 10–20 mil","a":"Ayacucho 2027, C1112AAK Cdad. Autónoma de Buenos Aires","b":"Recoleta","x":1737.9,"y":974.2,"f":1},{"id":"8902066211991510550","e":"🥐","n":"Crecia Bollería","d":"","no":"","t":"Espresso bar","p":"ARS 10–20 mil","a":"Juncal 2179, C1125 Cdad. Autónoma de Buenos Aires","b":"Recoleta","x":1660.0,"y":1025.4,"f":1},{"id":"17345639781767075078","e":"🥐","n":"CUADRA","d":"","no":"","t":"Padaria","p":"ARS 10–20 mil","a":"O'Higgins 3202, C1429 BBJ, Cdad. Autónoma de Buenos Aires","b":"Núñez","x":1136.5,"y":599.3,"f":1},{"id":"12427984701521356996","e":"🥐","n":"Atelier Fuerza Nuñez AF","d":"","no":"","t":"Padaria","p":"ARS 1–10.000","a":"Arribeños 3130, C1429 Cdad. Autónoma de Buenos Aires","b":"Núñez","x":1168.8,"y":587.6,"f":1},{"id":"7950790509131580652","e":"🍽️","n":"Hortaleza","d":"","no":"","t":"Restaurante","p":"ARS 20–30 mil","a":"Av. Sta. Fe 3900, C1425 Cdad. Autónoma de Buenos Aires","b":"Palermo","x":1495.7,"y":937.3,"f":1},{"id":"1891943441320281175","e":"🥐","n":"PADRE","d":"","no":"","t":"Padaria","p":"ARS 10–30 mil","a":"Honduras 4184, C1180 Cdad. Autónoma de Buenos Aires","b":"Palermo","x":1460.9,"y":1043.4,"f":1},{"id":"493275716202880682","e":"🍸","n":"Atis Bar","d":"","no":"","t":"Gastropub","p":"ARS 10–30 mil","a":"Perú 1024, C1068 Cdad. Autónoma de Buenos Aires","b":"San Telmo","x":1859.2,"y":1299.4,"f":1},{"id":"10574805800222930375","e":"☕","n":"Oli","d":"","no":"","t":"Restaurante","p":"ARS 10–50 mil","a":"Costa Rica 6020, C1414 Cdad. Autónoma de Buenos Aires","b":"Palermo","x":1324.1,"y":893.3,"f":1},{"id":"828646285220621542","e":"☕","n":"CAFECITO - Tiny Coffee Shop (Café de especialidad) - Palermo","d":"","no":"","t":"Espresso bar","p":"ARS 10–20 mil","a":"Charcas 4997, C1425 Cdad. Autónoma de Buenos Aires","b":"Palermo","x":1409.4,"y":893.2,"f":1},{"id":"18266810454206110051","e":"🍽️","n":"Restaurante Narda Comedor","d":"","no":"","t":"Restaurante","p":"ARS 20–70 mil","a":"Mcal. Antonio José de Sucre 664, C1428 Cdad. Autónoma de Buenos Aires","b":"Belgrano","x":1344.9,"y":630.6,"f":1},{"id":"14820637880910198014","e":"🍝","n":"YIYO EL ZENEIZE","d":"","no":"","t":"Restaurante com culinária da Ligúria","p":"ARS 20–40 mil","a":"Av. Eva Perón 4402, C1407 Cdad. Autónoma de Buenos Aires","b":"Parque Avellaneda","x":1036.6,"y":1637.6,"f":1},{"id":"9577829908704698801","e":"🌍","n":"Mishiguene","d":"","no":"","t":"Jantar sofisticado","p":"","a":"Lafinur 3368, C1425 Cdad. Autónoma de Buenos Aires","b":"Palermo","x":1544.8,"y":869.9,"f":1},{"id":"2408829391804520706","e":"🥪","n":"Nola","d":"","no":"","t":"Gastropub","p":"ARS 20–30 mil","a":"Gorriti 4389, C1414 Cdad. Autónoma de Buenos Aires","b":"Palermo","x":1441.2,"y":1035.3,"f":1},{"id":"8674908515674877566","e":"🥩","n":"Parrilla La Brigada","d":"","no":"","t":"Churrascaria","p":"ARS 40–100 mil","a":"Estados Unidos 465, C1066 Cdad. Autónoma de Buenos Aires","b":"San Telmo","x":1871.6,"y":1284.3,"f":1},{"id":"9299942354769044672","e":"🏛️","n":"El Ateneo Grand Splendid","d":"","no":"","t":"","p":"","a":"Av. Sta. Fe 1860, C1123 Cdad. Autónoma de Buenos Aires","b":"Recoleta","x":1693.8,"y":1059.8,"f":1},{"id":"2080525475370239677","e":"🍦","n":"Valence Recoleta","d":"","no":"","t":"","p":"","a":"Rodríguez Peña 1299, C1021 ABA, Cdad. Autónoma de Buenos Aires","b":"Recoleta","x":1711.6,"y":1041.0,"f":1},{"id":"6669751614909363265","e":"☕","n":"Kopi Cafe","d":"","no":"","t":"Cafeteria","p":"ARS 10–20 mil","a":"Juncal 1891, C1054 Cdad. Autónoma de Buenos Aires","b":"Recoleta","x":1693.5,"y":1035.4,"f":1},{"id":"9895268787963389924","e":"🍝","n":"El Sanjuanino","d":"","no":"","t":"Argentina","p":"ARS 10–30 mil","a":"Posadas 1515, C1112 Cdad. Autónoma de Buenos Aires","b":"Recoleta","x":1751.1,"y":972.8,"f":1},{"id":"11800159320677038352","e":"🍦","n":"Via Maggiore ice cream","d":"","no":"","t":"","p":"","a":"Av. Callao 777, C1022 AAA, Cdad. Autónoma de Buenos Aires","b":"San Nicolás","x":1706.8,"y":1100.3,"f":1},{"id":"7609271938932249737","e":"☕","n":"BLANCA®","d":"","no":"","t":"Espresso bar","p":"ARS 10–20 mil","a":"Sinclair 3136, C1425 Cdad. Autónoma de Buenos Aires","b":"Palermo","x":1458.3,"y":835.8,"f":1},{"id":"10152841826580314604","e":"☕","n":"LAB. Training Center & Coffee Shop","d":"","no":"","t":"Cafeteria","p":"ARS 10–30 mil","a":"Humboldt 1542, C1414CTN Buenos Aires","b":"Palermo","x":1342.6,"y":960.0,"f":1},{"id":"9614174926626087643","e":"☕","n":"Tres","d":"","no":"","t":"Espresso bar","p":"ARS 10–20 mil","a":"Teodoro García 2806, C1426DNB Cdad. Autónoma de Buenos Aires","b":"Colegiales","x":1248.9,"y":832.7,"f":1},{"id":"14954380515266001760","e":"🍝","n":"Varela Varelita","d":"","no":"Um dos melhores milanesas de Buenos Aires.","t":"Café","p":"ARS 10–20 mil","a":"Av. Raúl Scalabrini Ortiz 2102, C1425DBP Cdad. Autónoma de Buenos Aires","b":"Palermo","x":1480.7,"y":975.7,"f":1},{"id":"4879165462438535817","e":"🥩","n":"Santos Manjares","d":"","no":"","t":"Bife","p":"ARS 20–40 mil","a":"Paraguay 938, C1057 AAN, Cdad. Autónoma de Buenos Aires","b":"Retiro","x":1808.2,"y":1078.2,"f":1},{"id":"9398872854398706962","e":"🥐","n":"Cruasan","d":"","no":"","t":"Padaria","p":"ARS 10–20 mil","a":"Av. Olazábal 3827, C1713BQE Cdad. Autónoma de Buenos Aires","b":"Villa Urquiza","x":1043.1,"y":789.4,"f":1},{"id":"16469795743063232615","e":"🥐","n":"Malcriada BAKERY DE BARRIO","d":"","no":"","t":"","p":"","a":"Dr. Emilio Ravignani 1338, C1414 Cdad. Autónoma de Buenos Aires","b":"Palermo","x":1291.0,"y":949.4,"f":1},{"id":"10018911273583311613","e":"🍽️","n":"La Kitchen","d":"","no":"","t":"","p":"","a":"Nuñez 3400, C1429 Cdad. Autónoma de Buenos Aires","b":"Coghlan","x":1021.1,"y":649.4,"f":1},{"id":"15950237864226029510","e":"☕","n":"FRUTO CAFÉ","d":"","no":"","t":"Café","p":"ARS 10–20 mil","a":"Jorge Luis Borges 2021, C1414 Cdad. Autónoma de Buenos Aires","b":"Palermo","x":1433.9,"y":959.9,"f":1},{"id":"10322432545695867349","e":"🥐","n":"Atelier Fuerza","d":"","no":"","t":"Padaria","p":"ARS 10–20 mil","a":"Gral. Lucio Norberto Mansilla 3801, C1425BQA Cdad. Autónoma de Buenos Aires","b":"Palermo","x":1506.2,"y":992.1,"f":1},{"id":"9652343267133388568","e":"🍝","n":"Bodegón de las Abuelas","d":"","no":"","t":"Ambiente familiar","p":"ARS 20–30 mil","a":"Rojas 2050, C1416CPV Cdad. Autónoma de Buenos Aires","b":"Villa Crespo","x":1201.7,"y":1099.9,"f":1},{"id":"11222049455745903175","e":"☕","n":"Big Rabbit","d":"","no":"","t":"Café","p":"ARS 10–20 mil","a":"Av. Juramento 1717, C1428DNA Cdad. Autónoma de Buenos Aires","b":"Belgrano","x":1230.4,"y":682.5,"f":1},{"id":"5905253966896088186","e":"🌍","n":"Sarkis","d":"","no":"","t":"Armênia","p":"ARS 20–40 mil","a":"Thames 1101, C1414DCW Cdad. Autónoma de Buenos Aires","b":"Villa Crespo","x":1348.9,"y":1014.8,"f":1},{"id":"9615951134450332531","e":"🍝","n":"El Preferido","d":"","no":"","t":"","p":"","a":"Jorge Luis Borges 2108, C1425FFD Cdad. Autónoma de Buenos Aires","b":"Palermo","x":1437.7,"y":954.1,"f":1},{"id":"6219839581803321045","e":"🛒","n":"Supermercado Ángel","d":"","no":"Vinhos super baratos em Buenos Aires.","t":"","p":"","a":"Sarmiento 1158, C1041AAX Cdad. Autónoma de Buenos Aires","b":"San Nicolás","x":1786.1,"y":1151.1,"f":1},{"id":"4405340606121094207","e":"☕","n":"Clorindo Café/Brunch","d":"","no":"","t":"Cafeteria","p":"ARS 10–20 mil","a":"Talcahuano 1261, C1061 Cdad. Autónoma de Buenos Aires","b":"Retiro","x":1763.4,"y":1035.9,"f":1},{"id":"990193823863489639","e":"☕","n":"Punto Café - San Telmo","d":"","no":"","t":"Espresso bar","p":"ARS 10–20 mil","a":"Perú 602, C1068 Cdad. Autónoma de Buenos Aires","b":"Monserrat","x":1856.7,"y":1250.0,"f":1},{"id":"7828313663637130620","e":"🍦","n":"Cadore Gelato Artigianale","d":"","no":"","t":"","p":"","a":"","b":"San Nicolás","x":1723.3,"y":1141.2,"f":1}]}</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script>
+{
+const DATA = JSON.parse(document.getElementById('data').textContent);
+const CATS = DATA.categorias, NOME = Object.fromEntries(CATS);
+const L = DATA.lugares;
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const norm = s => String(s ?? '').normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
+const URLRE = /https?:\/\/\S+/g;
+const lento = matchMedia('(prefers-reduced-motion: reduce)').matches;
+L.forEach(l => {
+  const urls = (l.no || '').match(URLRE) || [];
+  l.ig = urls.find(u => u.includes('instagram.com')) || urls[0] || '';
+  l.txt = (l.no || '').replace(URLRE, '').replace(/\s+/g, ' ').replace(/[:\s]+$/, '').trim();
+  l.cat = NOME[l.e] || 'Outros';
+  l.busca = norm([l.n, l.txt, l.d, l.b, l.t, l.cat].join(' '));
+});
+const inicial = l => esc(l.n.replace(/^[^\p{L}\p{N}]+/u, '').charAt(0).toUpperCase());
+
+/* ---------- estado ---------- */
+let sel = new Set(), q = '', cur = null;
+try { JSON.parse(localStorage.getItem('mapaba.sel') || '[]').forEach(e => NOME[e] && sel.add(e)); } catch (e) {}
+const salvar = () => { try { localStorage.setItem('mapaba.sel', JSON.stringify([...sel])); } catch (e) {} };
+const ok = l => (sel.size === 0 || sel.has(l.e)) && (!q || l.busca.includes(q));
+const visiveis = () => L.filter(ok);
+
+/* ---------- categorias e lista ---------- */
+const catsEl = document.getElementById('cats'), listEl = document.getElementById('list'), countEl = document.getElementById('count');
+const total = {}; L.forEach(l => total[l.e] = (total[l.e] || 0) + 1);
+function renderCats() {
+  catsEl.innerHTML = `<button type="button" class="cell" data-e="" aria-pressed="${sel.size === 0}">Todos <span class="n">${L.length}</span></button>` +
+    CATS.filter(([e]) => total[e]).map(([e, n]) => `<button type="button" class="cell" data-e="${e}" aria-pressed="${sel.has(e)}">${esc(n)} <span class="n">${total[e]}</span></button>`).join('');
+}
+function renderList() {
+  const vis = visiveis();
+  countEl.textContent = vis.length === L.length ? `${L.length} lugares que o Gui salvou, da parrilla ao café.` : `${vis.length} de ${L.length} lugares nesta seleção.`;
+  if (!vis.length) {
+    listEl.innerHTML = `<div class="empty"><p>Nenhum lugar com essa busca ou filtro.</p><button type="button" class="btn" id="limpar">Limpar filtros</button></div>`;
+    return;
+  }
+  const grupos = CATS.map(([e, n]) => [e, n, vis.filter(l => l.e === e).sort((a, b) => a.n.localeCompare(b.n, 'es'))]).filter(g => g[2].length);
+  listEl.innerHTML = grupos.map(([e, n, ls]) => `<section class="grp"><div class="gh"><h2>${esc(n)}</h2><span class="n">${ls.length}</span></div>` +
+    ls.map(l => `<button type="button" class="row${cur === l ? ' on' : ''}" data-id="${l.id}">` +
+      (l.f ? `<img class="thumb" src="mini/${l.id}.webp" width="64" height="64" loading="lazy" alt="">` : `<span class="thumb thumb--vazio" aria-hidden="true">${inicial(l)}</span>`) +
+      `<span><b>${esc(l.n)}</b><span class="m"><span>${esc(l.b)}</span>${l.p ? `<span>${esc(l.p)}</span>` : ''}</span>${(l.d || l.txt) ? `<span class="nt">${esc(l.d || l.txt)}</span>` : ''}</span></button>`).join('') + `</section>`).join('');
+}
+catsEl.addEventListener('click', ev => {
+  const b = ev.target.closest('.cell'); if (!b) return;
+  const e = b.dataset.e;
+  if (!e) sel.clear(); else sel.has(e) ? sel.delete(e) : sel.add(e);
+  salvar(); atualizar(true);
+});
+listEl.addEventListener('click', ev => {
+  if (ev.target.closest('#limpar')) { sel.clear(); q = ''; qEl.value = ''; salvar(); atualizar(true); return; }
+  const r = ev.target.closest('.row'); if (r) abrir(L.find(l => l.id === r.dataset.id), true);
+});
+const qEl = document.getElementById('q');
+qEl.addEventListener('input', () => { q = norm(qEl.value.trim()); atualizar(false); });
+
+/* ---------- mapa ---------- */
+const box = document.getElementById('map'), cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+const pinsEl = document.getElementById('pins'), statusEl = document.getElementById('status');
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+let M = null, P = null, cor = {}, t = d3.zoomIdentity, k0 = 1, W = 2387, H = 2200, dpr = 1, agendado = false;
+const ordem = [...L].sort((a, b) => a.y - b.y);
+pinsEl.innerHTML = ordem.map(l => `<button type="button" class="pin" data-id="${l.id}" aria-label="${esc(l.n)}, ${esc(l.cat)}" title="${esc(l.n)}">` +
+  (l.f ? `<img src="mini/${l.id}.webp" width="64" height="64" loading="lazy" alt="">` : `<span class="ini">${inicial(l)}</span>`) + `</button>`).join('');
+const pinEls = new Map([...pinsEl.children].map(b => [b.dataset.id, b]));
+pinsEl.addEventListener('click', ev => { const b = ev.target.closest('.pin'); if (b) { ev.stopPropagation(); abrir(L.find(l => l.id === b.dataset.id), false); } });
+
+function lerCores() {
+  ['--map-outside', '--map-land', '--map-water', '--map-park', '--map-local', '--map-compl', '--map-princ', '--map-tronc', '--map-label', '--map-label-2', '--map-rail', '--map-water-label', '--map-park-label', '--map-halo', '--color-ink', '--color-paper']
+    .forEach(n => cor[n] = css(n));
+  ['a', 'b', 'c', 'd', 'e', 'h'].forEach(k => cor[k.toUpperCase()] = css('--line-' + k));
+}
+function caminhos(m) {
+  const Q = m.Q, trilha = (arr, fechar) => { const p = new Path2D(); for (const a of arr) { let x = a[0], y = a[1]; p.moveTo(x / Q, y / Q); for (let i = 2; i < a.length; i += 2) { x += a[i]; y += a[i + 1]; p.lineTo(x / Q, y / Q); } if (fechar) p.closePath(); } return p; };
+  const barr = new Path2D(); m.barrios.forEach(b => barr.addPath(new Path2D(b.d)));
+  return {
+    rio: new Path2D(m.rio), cidade: new Path2D(m.contorno), lagos: new Path2D(m.lagos), barrios: barr,
+    parques: trilha(m.parques, true), aguas: trilha(m.aguas || [], true), trens: trilha(m.trens || []), ruas: Object.fromEntries(Object.entries(m.ruas).map(([k, v]) => [k, trilha(v)])),
+    subte: Object.fromEntries(Object.entries(m.subte.linhas).map(([k, v]) => [k, trilha(v)])),
+  };
+}
+const rampa = (k, a, b) => Math.max(0, Math.min(1, (k / k0 - a) / (b - a)));
+const SERIF = '"Source Serif 4", Georgia, serif', DISP = '"Bricolage Grotesque", sans-serif';
+function desenhar() {
+  agendado = false;
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.fillStyle = cor['--map-outside']; ctx.fillRect(0, 0, cv.width, cv.height);
+  if (!P) return;
+  const k = t.k, s = dpr * k;
+  ctx.setTransform(s, 0, 0, s, dpr * t.x, dpr * t.y);
+  ctx.fillStyle = cor['--map-water']; ctx.fill(P.rio);
+  ctx.fillStyle = cor['--map-land']; ctx.fill(P.cidade);
+  ctx.fillStyle = cor['--map-water']; ctx.fill(P.lagos);
+  ctx.fillStyle = cor['--map-park']; ctx.fill(P.parques);
+  ctx.fillStyle = cor['--map-water']; ctx.fill(P.aguas);
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  const traco = (path, c, px, alpha = 1) => { if (alpha <= 0 || !path) return; ctx.globalAlpha = alpha; ctx.strokeStyle = c; ctx.lineWidth = px / k; ctx.stroke(path); ctx.globalAlpha = 1; };
+  traco(P.ruas.local, cor['--map-local'], 0.9, rampa(k, 1.8, 3.2));
+  traco(P.ruas.peat, cor['--map-local'], 0.9, rampa(k, 2.5, 4));
+  traco(P.ruas.compl, cor['--map-compl'], 0.9, rampa(k, 1.1, 2));
+  traco(P.ruas.princ, cor['--map-princ'], 1);
+  traco(P.ruas.tronc, cor['--map-tronc'], 1.5);
+  traco(P.ruas.auto, cor['--map-tronc'], 2.2);
+  traco(P.trens, cor['--map-rail'], 1.2, rampa(k, 0.9, 1.6));
+  traco(P.barrios, cor['--map-compl'], 1.2, 0.9 - rampa(k, 3, 5) * 0.6);
+  for (const [lin, path] of Object.entries(P.subte)) traco(path, cor[lin] || cor['--color-ink'], 3);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const ocupado = [], livre = r => !ocupado.some(o => r.x < o.x + o.w && r.x + r.w > o.x && r.y < o.y + o.h && r.y + r.h > o.y);
+  const rotulo = (txt, x, y, ang, fonte, c) => {
+    ctx.font = fonte; const wd = ctx.measureText(txt).width, sn = Math.abs(Math.sin(ang)), cs = Math.abs(Math.cos(ang));
+    const r = { x: x - (wd * cs) / 2 - 6, y: y - (wd * sn) / 2 - 9, w: wd * cs + 12 + 14 * sn, h: wd * sn + 18 };
+    if (x < -60 || y < -20 || x > cv.clientWidth + 60 || y > cv.clientHeight + 20 || !livre(r)) return;
+    ocupado.push(r);
+    ctx.save(); ctx.translate(x, y); if (ang) ctx.rotate(ang);
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.lineWidth = 3.5; ctx.strokeStyle = cor['--map-halo']; ctx.strokeText(txt, 0, 0);
+    ctx.fillStyle = c; ctx.fillText(txt, 0, 0); ctx.restore();
+  };
+  if (k / k0 < 2.6) rotulo('Río de la Plata', t.applyX(1880), t.applyY(600), 0, `italic 400 17px ${SERIF}`, cor['--map-water-label']);
+  if (k / k0 >= 5.5) for (const [n, lin, x, y] of M.subte.estacoes) {
+    const sx = t.applyX(x), sy = t.applyY(y);
+    ctx.fillStyle = cor['--color-paper']; ctx.strokeStyle = cor[lin] || cor['--color-ink']; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(sx, sy, 4, 0, 7); ctx.fill(); ctx.stroke();
+    if (k / k0 >= 8) rotulo(n, sx, sy + 13, 0, `500 11px ${DISP}`, cor['--map-label']);
+  }
+  if (k / k0 >= 3) for (const [n, x, y, a] of M.rotulos) rotulo(n, t.applyX(x), t.applyY(y), a * Math.PI / 180, `italic 400 12px ${SERIF}`, cor['--map-label']);
+  if (k / k0 >= 2) for (const [n, x, y] of M.parqueRot) rotulo(n, t.applyX(x), t.applyY(y), 0, `italic 400 12px ${SERIF}`, cor['--map-park-label']);
+  if (k / k0 < 6) for (const b of M.barrios) rotulo(b.n, t.applyX(b.lx), t.applyY(b.ly), 0, `800 15px ${DISP}`, cor['--map-label']);
+  if (k / k0 < 7) for (const [n, x, y, peso] of (M.locais || [])) if (peso >= 2 || k / k0 >= 2.2) rotulo(n, t.applyX(x), t.applyY(y), 0, `${peso >= 2 ? 700 : 500} ${peso >= 2 ? 14 : 12}px ${DISP}`, cor['--map-label-2']);
+}
+const pedir = () => { if (!agendado) { agendado = true; requestAnimationFrame(desenhar); } };
+function posicionarPins() {
+  pinsEl.classList.toggle('far', t.k < k0 * 2.4);
+  for (const l of L) pinEls.get(l.id).style.transform = `translate(${t.applyX(l.x)}px, ${t.applyY(l.y)}px) translate(-50%, -50%)`;
+}
+const zoom = d3.zoom().on('zoom', ev => { t = ev.transform; posicionarPins(); pedir(); });
+d3.select(cv).call(zoom).on('dblclick.zoom', null);
+cv.addEventListener('click', () => fechar());
+function tamanho() {
+  const w = box.clientWidth, h = box.clientHeight;
+  dpr = Math.min(devicePixelRatio || 1, 2);
+  cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+  k0 = Math.min(w / W, h / H);
+  zoom.scaleExtent([k0 * 0.9, k0 * 60]).translateExtent([[-W * 0.2, -H * 0.2], [W * 1.2, H * 1.2]]);
+  return { w, h };
+}
+const mover = (alvo, anim) => (anim && !lento ? d3.select(cv).transition().duration(450) : d3.select(cv)).call(zoom.transform, alvo);
+function enquadrar(ls, anim = true) {
+  if (!ls.length) return;
+  const { w, h } = tamanho();
+  let [x0, x1] = d3.extent(ls, l => l.x), [y0, y1] = d3.extent(ls, l => l.y);
+  const pad = 60; x0 -= pad; x1 += pad; y0 -= pad; y1 += pad;
+  const k = Math.min(k0 * 16, 0.92 * Math.min(w / (x1 - x0), h / (y1 - y0)));
+  mover(d3.zoomIdentity.translate(w / 2 - k * (x0 + x1) / 2, h / 2 - k * (y0 + y1) / 2).scale(k), anim);
+}
+function focar(l) {
+  const { w, h } = tamanho(), k = Math.max(t.k, k0 * 7), desk = innerWidth > 960;
+  const cx = desk ? w * 0.66 : w / 2, cy = desk ? h * 0.38 : h * 0.42;
+  mover(d3.zoomIdentity.translate(cx - k * l.x, cy - k * l.y).scale(k), true);
+}
+const naCidade = ls => ls.filter(l => !l.fora);
+document.getElementById('zin').onclick = () => d3.select(cv).transition().duration(lento ? 0 : 250).call(zoom.scaleBy, 1.7);
+document.getElementById('zout').onclick = () => d3.select(cv).transition().duration(lento ? 0 : 250).call(zoom.scaleBy, 1 / 1.7);
+document.getElementById('fit').onclick = () => enquadrar(visiveis());
+
+async function carregarMapa() {
+  statusEl.hidden = false; statusEl.innerHTML = '<p>Carregando o mapa</p>';
+  try {
+    const r = await fetch('mapa.json'); if (!r.ok) throw new Error(r.status);
+    M = await r.json(); W = M.W; H = M.H; P = caminhos(M);
+    statusEl.hidden = true; tamanho(); pedir();
+  } catch (e) {
+    statusEl.innerHTML = '<p>O mapa não carregou. A lista continua funcionando.</p><button type="button" class="btn" id="denovo">Tentar de novo</button>';
+    statusEl.querySelector('#denovo').onclick = carregarMapa;
+  }
+}
+
+/* ---------- cartão ---------- */
+const card = document.getElementById('card');
+function abrir(l, voar) {
+  if (!l) return;
+  cur = l;
+  const dl = [['Preço', l.p], ['No Google', l.t], ['Endereço', l.a]].filter(x => x[1]);
+  card.innerHTML = (l.f ? `<img class="photo" src="fotos/${l.id}.webp" width="720" height="480" alt="Foto de ${esc(l.n)}">` : '') +
+    `<div class="body"><div class="head"><span class="tag">${esc(l.cat)}</span><span class="bairro">${esc(l.b)}</span><button type="button" class="x" aria-label="Fechar">×</button></div>
+    <h2>${esc(l.n)}</h2>
+    ${l.d ? `<p class="standfirst">${esc(l.d)}</p>` : ''}
+    ${l.txt ? `<blockquote><p>${esc(l.txt)}</p><cite>Nota do Gui</cite></blockquote>` : ''}
+    ${dl.length ? `<dl>${dl.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join('')}</dl>` : ''}
+    <div class="acts"><a class="btn btn--primary" href="https://maps.google.com/?cid=${l.id}" target="_blank" rel="noopener">Abrir no Google Maps</a>${l.ig ? `<a class="btn" href="${esc(l.ig)}" target="_blank" rel="noopener">${l.ig.includes('instagram') ? 'Ver o reel' : 'Ver link'}</a>` : ''}</div></div>`;
+  card.hidden = false; card.scrollTop = 0;
+  card.querySelector('.x').onclick = fechar;
+  pinEls.forEach((b, id) => b.classList.toggle('sel', id === l.id));
+  listEl.querySelectorAll('.row.on').forEach(r => r.classList.remove('on'));
+  const row = listEl.querySelector(`[data-id="${l.id}"]`);
+  if (row) { row.classList.add('on'); if (innerWidth > 960) row.scrollIntoView({ block: 'nearest' }); }
+  try { history.replaceState(null, '', '#l-' + l.id); } catch (e) {}
+  if (voar) focar(l);
+}
+function fechar() {
+  if (!cur) return;
+  cur = null; card.hidden = true;
+  pinEls.forEach(b => b.classList.remove('sel'));
+  listEl.querySelectorAll('.row.on').forEach(r => r.classList.remove('on'));
+  try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
+}
+addEventListener('keydown', ev => { if (ev.key === 'Escape') fechar(); });
+
+function atualizar(reenquadrar) {
+  renderCats(); renderList();
+  for (const l of L) pinEls.get(l.id).hidden = !ok(l);
+  if (cur && !ok(cur)) fechar();
+  if (reenquadrar) { const v = visiveis(); enquadrar(naCidade(v).length ? naCidade(v) : v); }
+}
+
+lerCores();
+new ResizeObserver(() => { tamanho(); posicionarPins(); pedir(); }).observe(box);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(pedir);
+renderCats(); renderList();
+for (const l of L) pinEls.get(l.id).hidden = !ok(l);
+const v0 = visiveis(); enquadrar(naCidade(v0).length ? naCidade(v0) : v0, false);
+carregarMapa();
+const h0 = (location.hash.match(/^#l-(\d+)$/) || [])[1];
+if (h0) abrir(L.find(l => l.id === h0), true);
+}
+</script>
+</body>
+</html>
