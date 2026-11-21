@@ -453,13 +453,14 @@ async function sincronizar() {
     }
     if (!novos.length) return;
     if (novasCats.length) { CATS = novasCats; NOME = Object.fromEntries(CATS); }
-    const aberto = cur && cur.id;
+    const tinha = !!cur;
+    const aberto = (cur && cur.id) || (decodeURIComponent(location.hash).match(/^#l-(.+)$/) || [])[1];
     L = novos; preparar();
     [...sel].forEach(e => NOME[e] || sel.delete(e));
     construirPins(); posicionarPins();
     cur = null; card.hidden = true;
     atualizar(false);
-    if (aberto) abrir(L.find(l => l.id === aberto), false);
+    if (aberto) abrir(L.find(l => l.id === aberto), !tinha);
   } catch (e) { /* sem planilha, o site segue com os dados embutidos */ }
 }
 sincronizar();
