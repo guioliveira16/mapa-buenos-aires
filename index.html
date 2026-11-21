@@ -273,7 +273,7 @@ const SERIF = '"Source Serif 4", Georgia, serif', DISP = '"Bricolage Grotesque",
    o gesto para; durante o arrasto/zoom, só essa foto é reposicionada e escalada — custa ~1 ms por quadro. */
 const snap = document.createElement('canvas'), sctx = snap.getContext('2d');
 let tSnap = null, sujo = true, ocioso = 0;
-const MARG = 0.35;
+const MARG = 0.25;
 const larguraTexto = new Map();
 function pintar(ctx, t, cw, ch) {
   ctx.setTransform(1, 0, 0, 1, 0, 0);
