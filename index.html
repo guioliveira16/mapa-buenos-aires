@@ -177,10 +177,10 @@ const URLRE = /https?:\/\/\S+/g;
 const lento = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const preparar = () => L.forEach(l => {
   const urls = (l.no || '').match(URLRE) || [];
-  l.ig = urls.find(u => u.includes('instagram.com')) || urls[0] || '';
+  l.ig = l.post || urls.find(u => u.includes('instagram.com')) || urls[0] || '';
   l.txt = (l.no || '').replace(URLRE, '').replace(/\s+/g, ' ').replace(/[:\s]+$/, '').trim();
   l.cat = NOME[l.e] || 'Outros';
-  l.busca = norm([l.n, l.txt, l.d, l.b, l.t, l.cat].join(' '));
+  l.busca = norm([l.n, l.txt, l.d, l.b, l.t, l.cat, l.rs].join(' '));
 });
 preparar();
 const inicial = l => esc(l.n.replace(/^[^\p{L}\p{N}]+/u, '').charAt(0).toUpperCase());
@@ -361,8 +361,9 @@ function abrir(l, voar) {
     <h2>${esc(l.n)}</h2>
     ${l.d ? `<p class="standfirst">${esc(l.d)}</p>` : ''}
     ${l.txt ? `<blockquote><p>${esc(l.txt)}</p><cite>Nota do Gui</cite></blockquote>` : ''}
+    ${!l.d && !l.txt && l.rs ? `<blockquote><p>${esc(l.rs)}</p><cite>Resumo do post, via Yaay</cite></blockquote>` : ''}
     ${dl.length ? `<dl>${dl.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join('')}</dl>` : ''}
-    <div class="acts"><a class="btn btn--primary" href="https://maps.google.com/?cid=${l.id}" target="_blank" rel="noopener">Abrir no Google Maps</a>${l.ig ? `<a class="btn" href="${esc(l.ig)}" target="_blank" rel="noopener">${l.ig.includes('instagram') ? 'Ver o reel' : 'Ver link'}</a>` : ''}</div></div>`;
+    <div class="acts"><a class="btn btn--primary" href="${esc(l.link || 'https://maps.google.com/?cid=' + l.id)}" target="_blank" rel="noopener">Abrir no Google Maps</a>${l.ig ? `<a class="btn" href="${esc(l.ig)}" target="_blank" rel="noopener">${l.ig.includes('instagram') ? 'Ver o reel' : 'Ver link'}</a>` : ''}</div></div>`;
   card.hidden = false; card.scrollTop = 0;
   card.querySelector('.x').onclick = fechar;
   pinEls.forEach((b, id) => b.classList.toggle('sel', id === l.id));
@@ -440,6 +441,14 @@ async function sincronizar() {
       if (r['Faixa de preço']) l.p = r['Faixa de preço'];
       if (r['Tipo (Google)']) l.t = r['Tipo (Google)'];
       if (r['Endereço']) l.a = r['Endereço'];
+      l.post = r['Post do Instagram'] || l.post || '';
+      l.rs = r['Resumo do Yaay'] || '';
+      if (r['Link no Maps'] && !/^\d+$/.test(l.id)) l.link = r['Link no Maps'];
+      if (!base) {
+        if (l.x < 0 || l.y < 0 || l.x > 2400 || l.y > 2200) l.fora = 1;   // fora do mapa desenhado
+        const m = (l.a || '').match(/([^,]+), Provincia de Buenos Aires/);
+        if (m) l.b = m[1].replace(/^\s*[A-Z]\d{4}[A-Z]{0,3}\s*/, '').trim();
+      }
       novos.push(l);
     }
     if (!novos.length) return;
