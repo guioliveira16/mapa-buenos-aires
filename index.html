@@ -423,6 +423,7 @@ async function aba(nome) {
 const KX = Math.cos(-34.60 * Math.PI / 180);
 const projetar = (lat, lng) => ({ x: (lng + 58.60) * KX * 10000, y: (-34.49 - lat) * 10000 });
 const num = v => parseFloat(String(v).replace(',', '.'));
+const COM_FOTO = new Set(["ChIJ1QcHKyvLvJURqvw3ccDpga4", "ChIJ340B5jq0vJURijD6W6dgfz0", "ChIJ38Hdqke0vJURmOqmLWzVFMY", "ChIJ3zpn2tLLvJURLknn6b9EjQY", "ChIJ57DJCaPKvJURQb9OyTgpXow", "ChIJ5StFOXjLvJURAho4jeJ7Rr0", "ChIJ6b6wn9Q0o5URBEzw25EZ1Q8", "ChIJ6bxBXHS2vJURSNyj_tqcLEI", "ChIJ8UppV77LvJURz63k9Ikp5js", "ChIJ8yYd64u1vJUREIQJSKLi0Rs", "ChIJ9-BA6E3LvJURyYL_CIi9voU", "ChIJ98tbLQDLvJURIQ0zsez_WVs", "ChIJ9TA5IgDLvJURYgnaYz5kNIY", "ChIJB506NdfJvJURUTZkkEBTnfA", "ChIJBYCUnpfKvJURyiD_BjcjvMg", "ChIJCymzeAC1vJURQ2Q-p6R85t8", "ChIJDwpiawDLvJURMcs6A2Nt3Rs", "ChIJEXK3cMzKvJURsynfCp3EhwU", "ChIJEwbHOJPJvJUR2FYQZVvUVO0", "ChIJF544uwy3vJURW-PS-n9tTMo", "ChIJF7OZ3Ta2vJURxjMNqLmxkhY", "ChIJG-h_IP3JvJURxEeuhRZwKXg", "ChIJH1TAoYe1vJURxTtuXkVAAHM", "ChIJH8X9HLbKvJUR21lsTOTkTA0", "ChIJH9DR4eLLvJUR9dy8yAWx7TY", "ChIJHTYNhGe9vJURqJhNW6i0XeI", "ChIJHadLRQC1vJURNAx0ReCrOco", "ChIJHzxV0CzLvJURpNhwh6llXeo", "ChIJI07XtG23vJURa6YRVpX5FEc", "ChIJITLRdAy1vJURCwlN56wbr6k", "ChIJIVcLFAC3vJURiOigt_hT_fQ", "ChIJIa9ySHrLvJURNIpv2avkyxw", "ChIJJaex4zS1vJUR1ViRiuKC1q8", "ChIJKxddRQC1vJURiJz_EDhAGiM", "ChIJLTdqFdLVvJURPTABFGOmheM", "ChIJLVpd9cu5vJUR4b3n6v1kcWU", "ChIJM6xGqXi3vJURBOber72i_FQ", "ChIJN4BnbgC1vJURfpkY9U0A8_s", "ChIJO1UCEq_LvJUR3WofYDPjO_w", "ChIJOQWVjLa3vJUR6Yls3UNKG9g", "ChIJOaYHO5ixvJURR9JJOZo18e8", "ChIJP36iAT2xvJURlNzVYn0vz8o", "ChIJQSCJr9DJvJURy2RoCpdxeZg", "ChIJRZy1LQC1vJURkBSBye8X07E", "ChIJRxWVNL21vJURUcM1oPYVWl0", "ChIJS-pQ2D5WNQARtCAomHm7NZA", "ChIJS8GOFGDKvJUR0EnzP6GC3IU", "ChIJTUDhd9_KvJUR5rGt0-5JYcY", "ChIJU6Z_S2DKvJURkgXpif-XH08", "ChIJURSuMybLvJUR0_RY07TpAEg", "ChIJVaAMLADLvJURyRN8NMHB2KI", "ChIJVbrw1XO2vJURJcmRCZCHPHk", "ChIJVdTYzezMvJURS5UqwiLwcec", "ChIJXVclmJm1vJURRirVaEvOwGk", "ChIJYzazQdbKvJURIQzSn_DUDJs", "ChIJZWn94-bLvJURXMuiHSivpBU", "ChIJZz5riM-1vJUR2G9x2av27Es", "ChIJ_Vo5PEqxvJURNPMQByRVozk", "ChIJ_wvOOAC1vJURd84WXCB0P-Y", "ChIJa5hUcdXLvJURNNtMelMawFM", "ChIJbUtpXADLvJURxlXJ_zeD3jk", "ChIJbW3ri3-1vJURDLNmGk7giCM", "ChIJc1RekrY0o5URDbRYiHSypRw", "ChIJd8NxEAC3vJURrf2Tj-UWh_c", "ChIJdf8YUA7KvJURmCvgdMA1-F4", "ChIJdxfr7ce1vJURUPUXtuU7mok", "ChIJeVHfiLTTvJURgMf987fpT8E", "ChIJeZBdPczKvJUR0HBJJSy2NiI", "ChIJfe2Q_5DKvJUR87yqng3e3O8", "ChIJg62EkUPLvJURNSVsEQenswc", "ChIJi6VloOO1vJURzeii4qgmagQ", "ChIJi7cEmyO1vJUR1_t5THXyioc", "ChIJiW5OYADLvJUR3S0d3hq08rE", "ChIJieMhFzfLvJURi9xLsj7xmNk", "ChIJkXQzQWzLvJURFExxw_LIk8g", "ChIJl1STDLbKvJUR2N8m7iZq6sU", "ChIJm1VdjT-1vJUR-QBpgx3eg0I", "ChIJnQTq4Zq1vJURgyfz4KsoKNY", "ChIJnf7IziWqSgARhn__AI9FKcY", "ChIJnfiT6_jKvJURV--NaRpVlw0", "ChIJo1yOZQw1o5URD2kaGOEqlBs", "ChIJoYcx1GvIvJURelmuyRr4BfU", "ChIJpyXrhpHKvJURcV5NDSbxPvw", "ChIJqYAQwk62vJURiouHkJUOTrY", "ChIJr1YG_YDKvJURYvDBwGUvToE", "ChIJr4VDbwDLvJURi5MhF6KLNNM", "ChIJrUxVfEKxvJURzj8mZkz43AA", "ChIJrXCyZSm1vJURbXp_7R0OsKs", "ChIJrYyRMOS1vJUR20oI6q4afBs", "ChIJrx1tfgC3vJURmqURtEVKiKI", "ChIJs2XPmoG1vJURwboMb5sigY0", "ChIJt7S9jc7KvJURKxSfAlOXQYM", "ChIJtWLd3l_LvJURAllcsfehMWo", "ChIJu5-1M7G3vJURAGXaT5m5nPA", "ChIJuYqwLzjIvJURjmqFcomnDOo", "ChIJubU_dkS2vJURneV_iD0HkzM", "ChIJva1bJgDLvJURHpXbHPsVgpI", "ChIJw6bWt1zKvJURP_4wICboImw", "ChIJw9joZSvLvJURG2FRKLNI7HA", "ChIJwYZ-dAC1vJURIvomNSNQvrQ", "ChIJxS5NRSq0vJURhJjVJpYGgLQ", "ChIJyQwjzbTLvJURZRDgVbk5-c4", "ChIJyRR1IgC1vJUR4GPKhF6INQE"]);   // lugares vindos da planilha que já têm foto em fotos/ e mini/
 async function sincronizar() {
   try {
     const [cats, lugares] = await Promise.all([aba('Categorias'), aba('Lugares')]);
@@ -433,7 +434,7 @@ async function sincronizar() {
       if (!r.ID) continue;
       const lat = num(r.Latitude), lng = num(r.Longitude), base = porId.get(r.ID);
       if (!base && !(lat && lng)) continue;
-      const l = base ? { ...base } : { id: r.ID, f: 0, b: '', ...projetar(lat, lng) };
+      const l = base ? { ...base } : { id: r.ID, f: COM_FOTO.has(r.ID) ? 1 : 0, b: '', ...projetar(lat, lng) };
       if (r.Emoji) l.e = r.Emoji;
       if (r.Lugar) l.n = r.Lugar;
       l.d = r.Dica || '';
@@ -455,6 +456,12 @@ async function sincronizar() {
     if (novasCats.length) { CATS = novasCats; NOME = Object.fromEntries(CATS); }
     const tinha = !!cur;
     const aberto = (cur && cur.id) || (decodeURIComponent(location.hash).match(/^#l-(.+)$/) || [])[1];
+    // Se a planilha voltar com bem menos lugares que o embutido (ex.: um filtro esquecido na aba),
+    // em vez de trocar tudo, só atualiza/acrescenta — nada some do site por acidente.
+    if (novos.length < L.length * 0.6) {
+      const ids = new Set(novos.map(l => l.id));
+      novos.push(...L.filter(l => !ids.has(l.id)));
+    }
     L = novos; preparar();
     [...sel].forEach(e => NOME[e] || sel.delete(e));
     construirPins(); posicionarPins();

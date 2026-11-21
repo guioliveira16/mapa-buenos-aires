@@ -121,6 +121,9 @@ function atualizarDoYaay() {
 
   const existentes = valores.slice(1).map(l => ({ id: String(l[col('ID')]).replace(/^'/, ''), lat: num(l[col('Latitude')]), lng: num(l[col('Longitude')]) }))
     .filter(e => e.id || e.lat);
+  const abaIgnorar = SpreadsheetApp.getActive().getSheetByName('Ignorar');   // IDs que você apagou e não quer de volta
+  const ignorar = {};
+  if (abaIgnorar) abaIgnorar.getDataRange().getValues().slice(1).forEach(l => { if (l[0]) ignorar[String(l[0]).trim()] = 1; });
   const novas = [];
   const data = s => { const m = String(s || '').match(/(\d{4})-(\d\d)-(\d\d)/); return m ? new Date(+m[1], +m[2] - 1, +m[3]) : ''; };
   const limpa = s => String(s == null ? '' : s).replace(/\s+/g, ' ').trim();
@@ -129,7 +132,7 @@ function atualizarDoYaay() {
     const sd = it.savedData; if (!sd) return;
     (sd.matches || []).forEach(m => {
       const lat = Number(m.latitude), lng = Number(m.longitude), sc = m.subCategory || '';
-      if (m.hidden || !m.googleMapsId || !lat) return;
+      if (m.hidden || !m.googleMapsId || !lat || ignorar[m.googleMapsId]) return;
       if (!(lat > -35.0 && lat < -34.3 && lng > -58.95 && lng < -58.15)) return;      // fora da Grande Buenos Aires
       if (YAAY_IGNORAR[sc]) return;
       const rua = limpa(m.address).split(',')[0].replace(/^[A-Z]\d{4}[A-Z]{0,3}\b/, '');
